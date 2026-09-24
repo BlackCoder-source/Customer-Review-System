@@ -1,6 +1,6 @@
 """Pydantic schemas for API request and response models."""
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -130,9 +130,41 @@ class AlertItem(BaseModel):
     affected_region: str = Field(..., description="Dominant affected region")
     severity_score: str = Field(..., description="Severity of the spike (low, medium, high)")
     supporting_review_ids: List[str] = Field(default_factory=list, description="Reviews part of the spike")
+    supporting_reviews: Optional[List["ReviewItem"]] = Field(
+        None, description="PII-redacted review objects for supporting reviews (alert detail only)"
+    )
     root_cause: Optional[RootCauseItem] = Field(None, description="Correlated root cause if any")
 
 
 class AlertsListResponse(BaseModel):
     """Response containing list of early issue detection alerts."""
     alerts: List[AlertItem] = Field(..., description="List of detected early issues")
+
+
+class MismatchItem(BaseModel):
+    """A single holdout sample where predicted label differed from the gold label."""
+    review_id: str = Field(..., description="Holdout sample ID")
+    text: str = Field(..., description="Review text")
+    gold_label: str = Field(..., description="Manually-assigned ground-truth label")
+    predicted_label: str = Field(..., description="Label predicted by the sentiment model")
+
+
+class PerClassMetric(BaseModel):
+    """Per-class accuracy counts."""
+    correct: int = Field(..., description="Number of correctly classified samples in this class")
+    total: int = Field(..., description="Total holdout samples in this class")
+
+
+class ValidationResponse(BaseModel):
+    """Sentiment-model validation results."""
+    total_samples: int = Field(..., description="Total holdout samples evaluated")
+    correct: int = Field(..., description="Total correctly classified samples")
+    accuracy: float = Field(..., description="Overall accuracy (0.0 – 1.0)")
+    per_class: Dict[str, PerClassMetric] = Field(
+        default_factory=dict,
+        description="Per-class accuracy breakdown keyed by sentiment label",
+    )
+    mismatches: List[MismatchItem] = Field(
+        default_factory=list,
+        description="Samples where prediction differed from the gold label",
+    )

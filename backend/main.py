@@ -23,12 +23,15 @@ from models.schemas import (
     ReviewItem,
     AlertsListResponse,
     AlertItem,
+    ValidationResponse,
 )
 from services.ingestion import load_and_clean_reviews
 from services.theme_extraction import extract_themes
 from services.sentiment import analyze_sentiment
 from services.detection import detect_early_issues
 from services.root_cause import find_root_cause
+from services.pii_redaction import redact_text
+from services.validation import run_validation
 
 # Configure logging
 logging.basicConfig(
@@ -340,6 +343,10 @@ def get_theme_reviews(theme_id: str) -> ThemeReviewsResponse:
     theme_name = matched["theme_name"].iloc[0]
     reviews = [row_to_review_item(row) for _, row in matched.iterrows()]
 
+    # Redact PII from every review text before returning
+    for review in reviews:
+        review.text = redact_text(review.text)
+
     return ThemeReviewsResponse(
         theme_id=theme_id,
         theme_name=theme_name,
@@ -381,10 +388,53 @@ def get_alert_detail(alert_id: str) -> AlertItem:
     alerts = reviews_cache.get("alerts", [])
     for alert in alerts:
         if alert["alert_id"] == alert_id:
-            return AlertItem(**alert)
-            
+            alert_item = AlertItem(**alert)
+
+            # Redact PII from the supporting review texts for this alert
+            df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+            if not df.empty and alert_item.supporting_review_ids:
+                supporting_df = df[df["review_id"].isin(alert_item.supporting_review_ids)]
+                redacted_reviews = [
+                    row_to_review_item(row) for _, row in supporting_df.iterrows()
+                ]
+                for rev in redacted_reviews:
+                    rev.text = redact_text(rev.text)
+                alert_item.supporting_reviews = redacted_reviews
+
+            return alert_item
+
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Alert with ID '{alert_id}' not found."
+    )
+
+
+@app.post(
+    "/validate/sentiment",
+    response_model=ValidationResponse,
+    summary="Validate Sentiment Model",
+    tags=["Validation"]
+)
+def validate_sentiment() -> ValidationResponse:
+    """Run the sentiment model against a manually-labelled holdout sample and return accuracy.
+
+    Computes overall accuracy, per-class accuracy breakdown, and lists
+    any mismatched predictions for diagnostic purposes.
+    """
+    try:
+        result = run_validation()
+    except Exception as exc:
+        logger.error("Sentiment validation failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Validation run failed: {exc}"
+        )
+
+    return ValidationResponse(
+        total_samples=result["total_samples"],
+        correct=result["correct"],
+        accuracy=result["accuracy"],
+        per_class=result["per_class"],
+        mismatches=result["mismatches"],
     )
 
