@@ -1,27 +1,29 @@
-# Python bytecode and caches
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.pytest_cache/
-
-# Virtual environments
-venv/
+.Python
 env/
-ENV/
-.env
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
 .venv/
 
-# Distribution / packaging
-build/
-dist/
-*.egg-info/
+# Environment variables
+.env
 
-# Operating system files
+# MacOS
 .DS_Store
-Thumbs.db
-desktop.ini
-
-# IDE files
-.vscode/
-.idea/

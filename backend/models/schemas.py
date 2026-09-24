@@ -109,3 +109,30 @@ class ThemeReviewsResponse(BaseModel):
     reviews: List[ReviewItem] = Field(
         ..., description="Full list of reviews assigned to this theme"
     )
+
+
+class RootCauseItem(BaseModel):
+    """Correlated root cause for a spike."""
+    event_type: str = Field(..., description="Type of event")
+    date: str = Field(..., description="Date of the event")
+    product: str = Field(..., description="Affected product")
+    region: str = Field(..., description="Affected region")
+    description: str = Field("", description="Optional description of the event")
+
+
+class AlertItem(BaseModel):
+    """Early issue detection alert model."""
+    alert_id: str = Field(..., description="Unique alert ID")
+    theme_name: str = Field(..., description="Theme that spiked")
+    start_date_of_spike: str = Field(..., description="Date the spike started")
+    growth_rate: float = Field(..., description="Velocity/acceleration score")
+    affected_product: str = Field(..., description="Dominant affected product")
+    affected_region: str = Field(..., description="Dominant affected region")
+    severity_score: str = Field(..., description="Severity of the spike (low, medium, high)")
+    supporting_review_ids: List[str] = Field(default_factory=list, description="Reviews part of the spike")
+    root_cause: Optional[RootCauseItem] = Field(None, description="Correlated root cause if any")
+
+
+class AlertsListResponse(BaseModel):
+    """Response containing list of early issue detection alerts."""
+    alerts: List[AlertItem] = Field(..., description="List of detected early issues")

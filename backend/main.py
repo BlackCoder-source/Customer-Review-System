@@ -21,10 +21,14 @@ from models.schemas import (
     ThemeSummaryItem,
     SentimentBreakdown,
     ReviewItem,
+    AlertsListResponse,
+    AlertItem,
 )
 from services.ingestion import load_and_clean_reviews
 from services.theme_extraction import extract_themes
 from services.sentiment import analyze_sentiment
+from services.detection import detect_early_issues
+from services.root_cause import find_root_cause
 
 # Configure logging
 logging.basicConfig(
@@ -117,9 +121,17 @@ def process_and_cache_dataset() -> pd.DataFrame:
     cleaned_df = load_and_clean_reviews()
     themed_df = extract_themes(cleaned_df)
     scored_df = analyze_sentiment(themed_df)
+    
+    logger.info("Detecting early issues...")
+    alerts = detect_early_issues(scored_df)
+    
+    for alert in alerts:
+        alert['root_cause'] = find_root_cause(alert)
+        
     reviews_cache["df"] = scored_df
+    reviews_cache["alerts"] = alerts
     reviews_cache["initialized"] = True
-    logger.info("Dataset successfully processed and cached (%d rows).", len(scored_df))
+    logger.info("Dataset successfully processed and cached (%d rows). Detected %d alerts.", len(scored_df), len(alerts))
     return scored_df
 
 
@@ -334,3 +346,45 @@ def get_theme_reviews(theme_id: str) -> ThemeReviewsResponse:
         total=len(reviews),
         reviews=reviews,
     )
+
+
+@app.get(
+    "/alerts",
+    response_model=AlertsListResponse,
+    summary="List Early Issue Alerts",
+    tags=["Alerts"]
+)
+def get_alerts() -> AlertsListResponse:
+    """List of Early Issue Detection alerts, sorted by urgency/velocity."""
+    if not reviews_cache.get("initialized"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Review intelligence dataset is not yet initialized."
+        )
+    return AlertsListResponse(alerts=reviews_cache.get("alerts", []))
+
+
+@app.get(
+    "/alerts/{alert_id}",
+    response_model=AlertItem,
+    summary="Get Alert Detail",
+    tags=["Alerts"]
+)
+def get_alert_detail(alert_id: str) -> AlertItem:
+    """Retrieve full alert detail including correlated root cause events."""
+    if not reviews_cache.get("initialized"):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Review intelligence dataset is not yet initialized."
+        )
+    
+    alerts = reviews_cache.get("alerts", [])
+    for alert in alerts:
+        if alert["alert_id"] == alert_id:
+            return AlertItem(**alert)
+            
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"Alert with ID '{alert_id}' not found."
+    )
+
