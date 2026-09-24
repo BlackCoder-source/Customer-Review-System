@@ -1,0 +1,26 @@
+review_id,text,product,region,date,rating
+REV-1001,"The delivery was delayed by over two weeks. When the package arrived, the outer box was completely crushed.","SmartWatch Pro","North America","2026-08-01",1
+REV-1002,"Exceptional build quality and very snappy interface! Battery life easily lasts 3 full days. Highly recommended.","SmartWatch Pro","Europe","2026-08-02",5
+REV-1003,"Customer support took 4 days to respond to my ticket, and then closed it without resolving the firmware glitch.","SoundWave ANC","North America","2026-08-03",2
+REV-1004,"Fairly average wireless earbuds. Sound is decent, but nothing extraordinary for this price tier.","SoundWave ANC","Asia Pacific","2026-08-04",3
+REV-1005,"The subscription pricing skyrocketed overnight without notice. Hidden fees make this unusable.","CloudSync Suite","North America","2026-08-05",1
+REV-1006,"Software crashed twice while editing high-resolution files. Lost 30 minutes of work. Urgent bugfix needed.","CloudSync Suite","Europe","2026-08-06",2
+REV-1007,"Fast shipping! Arrived 2 days earlier than scheduled in pristine condition. Great packaging.","SmartWatch Pro","Latin America","2026-08-07",5
+REV-1008,"Great product overall. The display is crisp and legible under direct sunlight. Setup was seamless.","SmartWatch Pro","North America","2026-08-08",4
+REV-1009,"Representative was polite and resolved my warranty claim within 10 minutes. Stellar customer service.","SoundWave ANC","Europe","2026-08-09",5
+REV-1010,"The charging case stopped working after three weeks. Very cheap plastic materials used.","SoundWave ANC","North America","2026-08-10",1
+REV-1011,"Way too overpriced compared to competitors offering identical cloud storage features.","CloudSync Suite","Asia Pacific","2026-08-11",2
+REV-1012,"Courier dropped package in the driveway under pouring rain. Product got wet and damaged.","SoundWave ANC","North America","2026-08-12",1
+REV-1013,"Cloud sync is lightning fast and effortless across MacBook and Windows workstation. Loving the new update.","CloudSync Suite","Europe","2026-08-13",5
+REV-1014,"Support bot kept looping in circles before finally connecting me to a live agent who was unhelpful.","SmartWatch Pro","Asia Pacific","2026-08-14",2
+REV-1015,"Reliable smartwatch with accurate heart rate tracking and sleep metrics. Good value for money.","SmartWatch Pro","North America","2026-08-15",4
+REV-1016,"Received wrong model color and shipping took nearly a month. Terrible logistics and courier tracking.","SoundWave ANC","Europe","2026-08-16",1
+REV-1017,"Monthly plan is reasonable, but enterprise pricing tier is extortionate for small teams.","CloudSync Suite","North America","2026-08-17",3
+REV-1018,"Active Noise Cancellation is world-class. Cuts out airplane cabin noise completely. Super comfy ear pads.","SoundWave ANC","Asia Pacific","2026-08-18",5
+REV-1019,"The strap broke on day four. Build quality does not match the premium price tag.","SmartWatch Pro","North America","2026-08-19",2
+REV-1020,"Customer care team went above and beyond to replace my damaged charging cable without hassle.","SoundWave ANC","Europe","2026-08-20",5
+REV-1021,"Disappointing tracking updates from courier. Package showed out for delivery for 5 consecutive days.","CloudSync Suite","North America","2026-08-21",2
+REV-1022,"Seamless onboarding and clean intuitive dashboard. Our entire marketing team adopted it easily.","CloudSync Suite","Europe","2026-08-22",5
+REV-1023,"Audio cuts out intermittently when phone is kept in pocket. Bluetooth connectivity issues.","SoundWave ANC","Asia Pacific","2026-08-23",2
+REV-1024,"Expensive initial purchase, but frequent discounts and bundle sales make it acceptable.","SmartWatch Pro","Latin America","2026-08-24",3
+REV-1025,"Phone support was offline during advertised working hours. Left waiting with zero assistance.","SmartWatch Pro","North America","2026-08-25",1
