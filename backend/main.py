@@ -210,11 +210,18 @@ def health_check() -> HealthResponse:
 def get_dashboard_summary(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)) -> DashboardSummaryResponse:
     """Retrieve overall customer intelligence metrics, including theme and sentiment counts."""
     df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
-    df = filter_reviews(df, product, region, date)
-    if df.empty:
+    if not reviews_cache.get("initialized"):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Review intelligence dataset is not yet initialized."
+        )
+    df = filter_reviews(df, product, region, date)
+    if df.empty:
+        return DashboardSummaryResponse(
+            total_reviews=0,
+            overall_sentiment=SentimentBreakdown(positive=0, neutral=0, negative=0, positive_pct=0.0, neutral_pct=0.0, negative_pct=0.0),
+            themes_count=0,
+            themes=[]
         )
 
     overall_sentiment = compute_sentiment_breakdown(df)
@@ -258,12 +265,14 @@ def get_dashboard_summary(product: Optional[str] = Query(None), region: Optional
 def list_themes(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)) -> ThemesListResponse:
     """Retrieve all extracted themes with review counts, complaint counts, and severity rankings."""
     df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
-    df = filter_reviews(df, product, region, date)
-    if df.empty:
+    if not reviews_cache.get("initialized"):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Review intelligence dataset is not yet initialized."
         )
+    df = filter_reviews(df, product, region, date)
+    if df.empty:
+        return ThemesListResponse(themes=[], total_themes=0)
 
     theme_items: List[ThemeSummaryItem] = []
     for theme_id, group in df.groupby("theme_id"):
@@ -434,7 +443,7 @@ def get_alert_detail(alert_id: str) -> AlertItem:
 @app.get("/trends/compare", response_model=CompareTrendsResponse, tags=["Trends"])
 def compare_trends(start_date_1: str = Query(...), end_date_1: str = Query(...), start_date_2: str = Query(...), end_date_2: str = Query(...)) -> CompareTrendsResponse:
     df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
-    if df.empty:
+    if not reviews_cache.get("initialized"):
         raise HTTPException(status_code=503, detail="Not initialized")
     
     def get_period_trend(sd, ed):
@@ -457,7 +466,7 @@ def compare_trends(start_date_1: str = Query(...), end_date_1: str = Query(...),
 @app.get("/summary/executive", response_model=ExecutiveSummaryResponse, tags=["Summary"])
 def get_executive_summary() -> ExecutiveSummaryResponse:
     df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
-    if df.empty:
+    if not reviews_cache.get("initialized"):
         raise HTTPException(status_code=503, detail="Not initialized")
     
     overall = compute_sentiment_breakdown(df)
@@ -479,7 +488,7 @@ def get_executive_summary() -> ExecutiveSummaryResponse:
 @app.get("/export", tags=["Export"])
 def export_dashboard(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)):
     df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
-    if df.empty:
+    if not reviews_cache.get("initialized"):
         raise HTTPException(status_code=503, detail="Not initialized")
     
     df = filter_reviews(df, product, region, date)
