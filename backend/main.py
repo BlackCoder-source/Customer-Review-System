@@ -118,6 +118,18 @@ def row_to_review_item(row: pd.Series) -> ReviewItem:
     )
 
 
+
+def filter_reviews(df: pd.DataFrame, product: Optional[str] = None, region: Optional[str] = None, date: Optional[str] = None) -> pd.DataFrame:
+    if df.empty:
+        return df
+    if product:
+        df = df[df["product"] == product]
+    if region:
+        df = df[df["region"] == region]
+    if date:
+        df = df[df["date"] == date]
+    return df
+
 def process_and_cache_dataset() -> pd.DataFrame:
     """Execute end-to-end ingestion, theme clustering, and sentiment scoring."""
     logger.info("Initializing dataset pipeline...")
@@ -195,9 +207,10 @@ def health_check() -> HealthResponse:
     summary="Dashboard Summary",
     tags=["Dashboard"]
 )
-def get_dashboard_summary() -> DashboardSummaryResponse:
+def get_dashboard_summary(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)) -> DashboardSummaryResponse:
     """Retrieve overall customer intelligence metrics, including theme and sentiment counts."""
     df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+    df = filter_reviews(df, product, region, date)
     if df.empty:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -242,9 +255,10 @@ def get_dashboard_summary() -> DashboardSummaryResponse:
     summary="List Themes",
     tags=["Themes"]
 )
-def list_themes() -> ThemesListResponse:
+def list_themes(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)) -> ThemesListResponse:
     """Retrieve all extracted themes with review counts, complaint counts, and severity rankings."""
     df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+    df = filter_reviews(df, product, region, date)
     if df.empty:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -361,14 +375,21 @@ def get_theme_reviews(theme_id: str) -> ThemeReviewsResponse:
     summary="List Early Issue Alerts",
     tags=["Alerts"]
 )
-def get_alerts() -> AlertsListResponse:
+def get_alerts(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)) -> AlertsListResponse:
     """List of Early Issue Detection alerts, sorted by urgency/velocity."""
     if not reviews_cache.get("initialized"):
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Review intelligence dataset is not yet initialized."
         )
-    return AlertsListResponse(alerts=reviews_cache.get("alerts", []))
+    alerts = reviews_cache.get("alerts", [])
+    if product:
+        alerts = [a for a in alerts if a.get("affected_product") == product]
+    if region:
+        alerts = [a for a in alerts if a.get("affected_region") == region]
+    if date:
+        alerts = [a for a in alerts if a.get("start_date_of_spike") == date]
+    return AlertsListResponse(alerts=alerts)
 
 
 @app.get(
@@ -408,6 +429,71 @@ def get_alert_detail(alert_id: str) -> AlertItem:
         detail=f"Alert with ID '{alert_id}' not found."
     )
 
+
+
+@app.get("/trends/compare", response_model=CompareTrendsResponse, tags=["Trends"])
+def compare_trends(start_date_1: str = Query(...), end_date_1: str = Query(...), start_date_2: str = Query(...), end_date_2: str = Query(...)) -> CompareTrendsResponse:
+    df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+    if df.empty:
+        raise HTTPException(status_code=503, detail="Not initialized")
+    
+    def get_period_trend(sd, ed):
+        sub = df[(df["date"] >= sd) & (df["date"] <= ed)]
+        total = len(sub)
+        themes = []
+        for theme_id, group in sub.groupby("theme_id"):
+            themes.append(ThemeTrend(
+                theme_name=group["theme_name"].iloc[0],
+                count=len(group),
+                sentiment=compute_sentiment_breakdown(group)
+            ))
+        return PeriodTrend(start_date=sd, end_date=ed, total_reviews=total, themes=themes)
+
+    return CompareTrendsResponse(
+        period_1=get_period_trend(start_date_1, end_date_1),
+        period_2=get_period_trend(start_date_2, end_date_2)
+    )
+
+@app.get("/summary/executive", response_model=ExecutiveSummaryResponse, tags=["Summary"])
+def get_executive_summary() -> ExecutiveSummaryResponse:
+    df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+    if df.empty:
+        raise HTTPException(status_code=503, detail="Not initialized")
+    
+    overall = compute_sentiment_breakdown(df)
+    theme_counts = df["theme_name"].value_counts()
+    top_theme = theme_counts.index[0] if not theme_counts.empty else "N/A"
+    
+    alerts = reviews_cache.get("alerts", [])
+    biggest_risk = alerts[0].get("theme_name") if alerts else "None"
+    
+    summary_text = (
+        f"The dashboard currently reflects {len(df)} total reviews with an overall sentiment of "
+        f"{overall.positive_pct}% positive and {overall.negative_pct}% negative. "
+        f"The most discussed theme is '{top_theme}'. "
+        f"The biggest emerging risk identified is '{biggest_risk}' based on recent velocity alerts. "
+        f"Action is recommended to monitor the '{biggest_risk}' trend closely."
+    )
+    return ExecutiveSummaryResponse(summary=summary_text)
+
+@app.get("/export", tags=["Export"])
+def export_dashboard(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)):
+    df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+    if df.empty:
+        raise HTTPException(status_code=503, detail="Not initialized")
+    
+    df = filter_reviews(df, product, region, date)
+    
+    stream = io.BytesIO()
+    with pd.ExcelWriter(stream, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Reviews')
+    stream.seek(0)
+    
+    return StreamingResponse(
+        stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=dashboard_export.xlsx"}
+    )
 
 @app.post(
     "/validate/sentiment",

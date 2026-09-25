@@ -168,3 +168,29 @@ class ValidationResponse(BaseModel):
         default_factory=list,
         description="Samples where prediction differed from the gold label",
     )
+
+
+class ThemeTrend(BaseModel):
+    """Trend data for a specific theme."""
+    theme_name: str = Field(..., description="Theme name")
+    count: int = Field(..., description="Review count")
+    sentiment: SentimentBreakdown = Field(..., description="Sentiment breakdown")
+
+
+class PeriodTrend(BaseModel):
+    """Trend data for a specific period."""
+    start_date: str = Field(..., description="Start date of the period")
+    end_date: str = Field(..., description="End date of the period")
+    total_reviews: int = Field(..., description="Total reviews in this period")
+    themes: List[ThemeTrend] = Field(default_factory=list, description="Theme trends")
+
+
+class CompareTrendsResponse(BaseModel):
+    """Response containing trend comparisons between two periods."""
+    period_1: PeriodTrend = Field(..., description="Trend data for the first period")
+    period_2: PeriodTrend = Field(..., description="Trend data for the second period")
+
+
+class ExecutiveSummaryResponse(BaseModel):
+    """Plain-language executive summary."""
+    summary: str = Field(..., description="Generated executive summary text")
