@@ -1817,15 +1817,18 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
 
     function buildUrl() {
         const BASE = "http://127.0.0.1:8000";
-        if (theme && theme.id) {
-            // Use theme-specific endpoint; sentiment & sort via query params on /reviews
-            const params = new URLSearchParams({ sort: currentSort, limit: "200" });
-            if (currentSentiment !== "all") params.set("sentiment", currentSentiment);
-            params.set("theme_id", theme.id);
-            return `${BASE}/reviews?${params}`;
-        }
         const params = new URLSearchParams({ sort: currentSort, limit: "200" });
         if (currentSentiment !== "all") params.set("sentiment", currentSentiment);
+
+        if (theme) {
+            // If we have a real BERTopic theme_id (from the backend theme detail page), use it for exact match.
+            // Otherwise fall back to theme_name partial match (covers static dashboard themes like "pricing").
+            if (theme.theme_id) {
+                params.set("theme_id", theme.theme_id);
+            } else if (theme.name) {
+                params.set("theme_name", theme.name);
+            }
+        }
         return `${BASE}/reviews?${params}`;
     }
 

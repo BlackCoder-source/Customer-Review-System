@@ -469,7 +469,8 @@ def compare_trends(start_date_1: str = Query(...), end_date_1: str = Query(...),
 )
 def list_reviews(
     sentiment: Optional[str] = Query(None, description="Filter by sentiment: positive, neutral, negative"),
-    theme_id: Optional[str] = Query(None, description="Filter by theme_id"),
+    theme_id: Optional[str] = Query(None, description="Filter by BERTopic theme_id"),
+    theme_name: Optional[str] = Query(None, description="Filter by theme name (case-insensitive partial match)"),
     product: Optional[str] = Query(None),
     region: Optional[str] = Query(None),
     date: Optional[str] = Query(None),
@@ -490,7 +491,11 @@ def list_reviews(
     if sentiment:
         df = df[df["sentiment"] == sentiment.lower()]
     if theme_id:
+        # Exact match on BERTopic numeric/string theme_id
         df = df[df["theme_id"] == theme_id]
+    elif theme_name:
+        # Case-insensitive partial match on theme_name (used when frontend only has display name)
+        df = df[df["theme_name"].str.lower().str.contains(theme_name.lower(), na=False)]
 
     # Sorting
     if sort == "date_asc":
