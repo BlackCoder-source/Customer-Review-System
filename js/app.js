@@ -743,8 +743,15 @@ function renderSummaryScreen(regenerated = false) {
                     </div>
 
                     <section class="summary-hero card card-elevated">
-                        <p class="eyebrow">${regenerated ? "REGENERATED SUMMARY" : "EXECUTIVE READOUT"}</p>
-                        <h2 id="executive-summary-text"><span class="summary-loading">Generating AI executive summary...</span></h2>
+                        <div class="summary-hero-header">
+                            <div style="flex:1">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                                    <p class="eyebrow" style="margin:0">${regenerated ? "REGENERATED SUMMARY" : "EXECUTIVE READOUT"}</p>
+                                    <span class="ai-badge" id="ai-status-badge"><span class="spinner-small"></span> Generating AI summary…</span>
+                                </div>
+                                <h2 id="executive-summary-text">${summary.headline}</h2>
+                            </div>
+                        </div>
                         <span class="summary-timestamp">Generated ${timestamp}</span>
                     </section>
 
@@ -766,25 +773,38 @@ function renderSummaryScreen(regenerated = false) {
     document.getElementById("summary-export")?.addEventListener("click", openExportPanel);
     document.getElementById("logout-button")?.addEventListener("click", () => { appState.selectedRole = null; renderLoginScreen(); });
 
-    // Fetch AI-generated summary from backend
-    const summaryHeadlineElem = document.getElementById("executive-summary-text");
+    // Fetch AI-generated summary from backend, replacing the static headline when ready
+    const summaryElem = document.getElementById("executive-summary-text");
+    const badgeElem = document.getElementById("ai-status-badge");
+
     fetch("http://127.0.0.1:8000/summary/executive")
         .then((res) => {
             if (!res.ok) throw new Error("Backend response error: " + res.status);
             return res.json();
         })
         .then((data) => {
-            if (data && data.summary && summaryHeadlineElem) {
-                summaryHeadlineElem.innerText = data.summary;
+            if (data && data.summary && summaryElem) {
+                summaryElem.style.opacity = "0";
+                summaryElem.style.transition = "opacity 0.5s ease";
+                setTimeout(() => {
+                    summaryElem.innerText = data.summary;
+                    summaryElem.style.opacity = "1";
+                }, 150);
+                if (badgeElem) {
+                    badgeElem.innerHTML = "✦ AI Generated";
+                    badgeElem.classList.add("ai-badge-done");
+                }
             }
         })
         .catch((err) => {
-            console.warn("Could not fetch AI executive summary from backend, using fallback:", err);
-            if (summaryHeadlineElem) {
-                summaryHeadlineElem.innerText = summary.headline;
+            console.warn("Could not fetch AI executive summary from backend, using static fallback:", err);
+            if (badgeElem) {
+                badgeElem.innerHTML = "⚡ Static summary";
+                badgeElem.classList.add("ai-badge-offline");
             }
         });
 }
+
 
 function openExportPanel() {
     const old = document.getElementById("export-panel");
@@ -1689,369 +1709,195 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
 
     const app = document.getElementById("app");
 
-    /*
-     * If the user reaches Evidence from the sidebar
-     * without first selecting a theme, show all reviews.
-     */
-
-    const reviews = theme
-        ? dashboardData.reviews.filter(
-            review =>
-                review.theme.toLowerCase() ===
-                theme.name.toLowerCase()
-        )
-        : dashboardData.reviews;
-
-
-    const pageTitle = theme
-        ? `${theme.name} evidence`
-        : "Review evidence";
-
+    const pageTitle = theme ? `${theme.name} evidence` : "Review evidence";
 
     app.innerHTML = `
         <div class="dashboard-layout">
 
             <aside class="sidebar">
-
-                <div class="sidebar-brand">
-                    INSIGHT<span>/</span>
-                </div>
-
-                <div class="workspace-label">
-                    CUSTOMER INTELLIGENCE
-                </div>
-
+                <div class="sidebar-brand">INSIGHT<span>/</span></div>
+                <div class="workspace-label">CUSTOMER INTELLIGENCE</div>
                 <nav class="sidebar-nav">
-
-                    <button
-                        class="nav-item"
-                        data-screen="dashboard"
-                    >
-                        <span>01</span>
-                        Overview
-                    </button>
-
-                    <button
-                        class="nav-item"
-                        data-screen="themes"
-                    >
-                        <span>02</span>
-                        Themes
-                    </button>
-
-                    <button
-                        class="nav-item"
-                        data-screen="alerts"
-                    >
-                        <span>03</span>
-                        Emerging Issues
-
-                        <span class="nav-count">
-                            04
-                        </span>
-                    </button>
-
-                    <button
-                        class="nav-item active"
-                        data-screen="evidence"
-                    >
-                        <span>04</span>
-                        Evidence
-                    </button>
-
-                    <button
-                        class="nav-item"
-                        data-screen="trends"
-                    >
-                        <span>05</span>
-                        Trends
-                    </button>
-
+                    <button class="nav-item" data-screen="dashboard"><span>01</span>Overview</button>
+                    <button class="nav-item" data-screen="themes"><span>02</span>Themes</button>
+                    <button class="nav-item" data-screen="alerts"><span>03</span>Emerging Issues <span class="nav-count">04</span></button>
+                    <button class="nav-item active" data-screen="evidence"><span>04</span>Evidence</button>
+                    <button class="nav-item" data-screen="trends"><span>05</span>Trends</button>
                 </nav>
-
                 <div class="sidebar-bottom">
-
-                    <button class="nav-item" data-screen="summary">
-                        <span>06</span>
-                        Reports
-                    </button>
-
-                    <button class="nav-item" id="logout-button">
-                        <span>07</span>
-                        Logout
-                    </button>
-
+                    <button class="nav-item" data-screen="summary"><span>06</span>Reports</button>
+                    <button class="nav-item" id="logout-button"><span>07</span>Logout</button>
                 </div>
-
             </aside>
 
-
             <main class="dashboard-main">
-
                 <header class="topbar">
-
-                    <button
-                        class="mobile-menu"
-                        aria-label="Open navigation"
-                    >
-                        ☰
-                    </button>
-
-                    <div>
-
-                        <p class="topbar-label">
-                            CUSTOMER INTELLIGENCE
-                        </p>
-
-                        <h2>
-                            Evidence
-                        </h2>
-
-                    </div>
-
-                    <div class="topbar-actions">
-
-                        <button
-                            class="icon-button"
-                            aria-label="Notifications"
-                        >
-                            ♢
-                        </button>
-
-                        <div class="user-profile">
-
-                            <div class="user-avatar">
-                                ${getRoleInitial()}
-                            </div>
-
-                            <div>
-
-                                <strong>
-                                    ${getRoleName()}
-                                </strong>
-
-                                <span>
-                                    Workspace
-                                </span>
-
-                            </div>
-
+                    <div class="topbar-leading">
+                        <button class="back-top-button" id="back-from-evidence" type="button">← Back</button>
+                        <button class="mobile-menu" aria-label="Open navigation">☰</button>
+                        <div>
+                            <p class="topbar-label">CUSTOMER INTELLIGENCE</p>
+                            <h2>Evidence</h2>
                         </div>
-
                     </div>
-
+                    <div class="topbar-actions">
+                        <div class="user-profile">
+                            <div class="user-avatar">${getRoleInitial()}</div>
+                            <div><strong>${getRoleName()}</strong><span>Workspace</span></div>
+                        </div>
+                    </div>
                 </header>
-
 
                 <section class="dashboard-content">
 
-                    <button
-                        class="back-button"
-                        id="back-from-evidence"
-                    >
-                        ← Back
-                    </button>
-
-
                     <div class="page-introduction evidence-introduction">
-
                         <div>
-
-                            <p class="eyebrow">
-                                REAL REVIEW EVIDENCE
-                            </p>
-
-                            <h1>
-                                ${pageTitle}
-                            </h1>
-
-                            <p class="detail-description">
-                                The customer feedback behind this
-                                insight.
-                            </p>
-
+                            <p class="eyebrow">REAL REVIEW EVIDENCE · LIVE DATA</p>
+                            <h1>${pageTitle}</h1>
+                            <p class="detail-description">The customer feedback behind this insight — fetched live from the review intelligence pipeline.</p>
                         </div>
-
-                        <div class="evidence-count">
-
-                            <strong>
-                                ${reviews.length}
-                            </strong>
-
-                            <span>
-                                reviews
-                            </span>
-
+                        <div class="evidence-count" id="evidence-count-badge">
+                            <strong id="evidence-count-num">—</strong>
+                            <span>reviews</span>
                         </div>
-
                     </div>
 
-
                     <section class="evidence-toolbar">
-
-                        <div>
-
-                            <span class="toolbar-label">
-                                FILTER
-                            </span>
-
-                            <button
-                                class="evidence-filter active"
-                                data-sentiment="all"
-                            >
-                                All
-                            </button>
-
-                            <button
-                                class="evidence-filter"
-                                data-sentiment="Positive"
-                            >
-                                Positive
-                            </button>
-
-                            <button
-                                class="evidence-filter"
-                                data-sentiment="Neutral"
-                            >
-                                Neutral
-                            </button>
-
-                            <button
-                                class="evidence-filter"
-                                data-sentiment="Negative"
-                            >
-                                Negative
-                            </button>
-
+                        <div class="evidence-filter-group">
+                            <span class="toolbar-label">SENTIMENT</span>
+                            <button class="evidence-filter active" data-sentiment="all">All</button>
+                            <button class="evidence-filter" data-sentiment="positive">Positive</button>
+                            <button class="evidence-filter" data-sentiment="neutral">Neutral</button>
+                            <button class="evidence-filter" data-sentiment="negative">Negative</button>
                         </div>
-
+                        <div class="evidence-sort-group">
+                            <span class="toolbar-label">SORT</span>
+                            <select class="evidence-sort-select" id="evidence-sort">
+                                <option value="date_desc">Newest first</option>
+                                <option value="date_asc">Oldest first</option>
+                                <option value="rating_asc">Lowest rating</option>
+                                <option value="rating_desc">Highest rating</option>
+                                <option value="sentiment">By sentiment</option>
+                            </select>
+                        </div>
                     </section>
 
-
-                    <section
-                        class="evidence-list"
-                        id="evidence-list"
-                    >
-
-                        ${
-                            reviews.length
-                                ? reviews
-                                    .map(
-                                        (review, index) =>
-                                            renderFullReview(
-                                                review,
-                                                index
-                                            )
-                                    )
-                                    .join("")
-                                : `
-                                    <div class="empty-state">
-                                        No review evidence available.
-                                    </div>
-                                `
-                        }
-
+                    <section class="evidence-list" id="evidence-list">
+                        ${[1,2,3,4,5].map(() => `
+                        <article class="full-review evidence-skeleton">
+                            <div class="review-index skeleton-block" style="width:28px;height:14px;border-radius:4px;"></div>
+                            <div class="full-review-content" style="flex:1">
+                                <div class="full-review-header" style="display:flex;gap:8px;margin-bottom:12px">
+                                    <div class="skeleton-block" style="width:72px;height:22px;border-radius:999px;"></div>
+                                    <div class="skeleton-block" style="width:90px;height:22px;border-radius:6px;"></div>
+                                    <div class="skeleton-block" style="width:80px;height:22px;border-radius:6px;"></div>
+                                </div>
+                                <div class="skeleton-block" style="width:100%;height:14px;border-radius:4px;margin-bottom:8px;"></div>
+                                <div class="skeleton-block" style="width:80%;height:14px;border-radius:4px;margin-bottom:16px;"></div>
+                                <div class="skeleton-block" style="width:140px;height:10px;border-radius:4px;"></div>
+                            </div>
+                        </article>`).join("")}
                     </section>
 
                 </section>
-
             </main>
-
-        </div>
-    `;
-
-
-    /* =========================================
-       BACK BUTTON
-       ========================================= */
-
-    const backButton =
-        document.getElementById(
-            "back-from-evidence"
-        );
-
-    if (backButton) {
-
-        backButton.addEventListener(
-            "click",
-            () => {
-
-                if (theme) {
-                    renderThemeDetail(theme);
-                } else {
-                    renderDashboard();
-                }
-
-            }
-        );
-    }
-
-
-    /* =========================================
-       SENTIMENT FILTERS
-       ========================================= */
-
-    const filterButtons =
-        document.querySelectorAll(
-            ".evidence-filter"
-        );
-
-    filterButtons.forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                const sentiment =
-                    button.dataset.sentiment;
-
-                filterButtons.forEach(
-                    item =>
-                        item.classList.remove("active")
-                );
-
-                button.classList.add("active");
-
-
-                const filteredReviews =
-                    sentiment === "all"
-                        ? reviews
-                        : reviews.filter(
-                            review =>
-                                review.sentiment ===
-                                sentiment
-                        );
-
-
-                const evidenceList =
-                    document.getElementById(
-                        "evidence-list"
-                    );
-
-
-                evidenceList.innerHTML =
-                    filteredReviews.length
-                        ? filteredReviews
-                            .map(
-                                (review, index) =>
-                                    renderFullReview(
-                                        review,
-                                        index
-                                    )
-                            )
-                            .join("")
-                        : `
-                            <div class="empty-state">
-                                No ${sentiment.toLowerCase()}
-                                reviews found.
-                            </div>
-                        `;
-            }
-        );
-    });
-
+        </div>`;
 
     attachDetailNavigation();
+    document.getElementById("logout-button")?.addEventListener("click", () => { appState.selectedRole = null; renderLoginScreen(); });
+
+    document.getElementById("back-from-evidence")?.addEventListener("click", () => {
+        if (theme) { renderThemeDetail(theme); } else { renderDashboard(); }
+    });
+
+    // --- State for live evidence ---
+    let currentSentiment = "all";
+    let currentSort = "date_desc";
+    let liveReviews = null; // will be populated from backend
+
+    function buildUrl() {
+        const BASE = "http://127.0.0.1:8000";
+        if (theme && theme.id) {
+            // Use theme-specific endpoint; sentiment & sort via query params on /reviews
+            const params = new URLSearchParams({ sort: currentSort, limit: "200" });
+            if (currentSentiment !== "all") params.set("sentiment", currentSentiment);
+            params.set("theme_id", theme.id);
+            return `${BASE}/reviews?${params}`;
+        }
+        const params = new URLSearchParams({ sort: currentSort, limit: "200" });
+        if (currentSentiment !== "all") params.set("sentiment", currentSentiment);
+        return `${BASE}/reviews?${params}`;
+    }
+
+    function mapApiReview(r) {
+        return {
+            text: r.text,
+            sentiment: r.sentiment.charAt(0).toUpperCase() + r.sentiment.slice(1),
+            theme: r.theme_name || r.theme || "",
+            region: r.region || "",
+            product: r.product || "",
+            date: r.date || "",
+            rating: r.rating || "",
+            review_id: r.review_id || "",
+        };
+    }
+
+    function renderList(reviews) {
+        const list = document.getElementById("evidence-list");
+        const countNum = document.getElementById("evidence-count-num");
+        if (!list) return;
+        if (countNum) countNum.textContent = reviews.length.toLocaleString();
+        list.innerHTML = reviews.length
+            ? reviews.map((r, i) => renderFullReview(r, i)).join("")
+            : `<div class="empty-state">No reviews match the current filters.</div>`;
+    }
+
+    function fetchReviews() {
+        const list = document.getElementById("evidence-list");
+        if (list) list.innerHTML = `<div class="evidence-loading-msg"><span class="spinner"></span> Loading reviews…</div>`;
+        fetch(buildUrl())
+            .then(res => { if (!res.ok) throw new Error("Backend error " + res.status); return res.json(); })
+            .then(data => {
+                const reviews = (data.reviews || []).map(mapApiReview);
+                liveReviews = reviews;
+                renderList(reviews);
+            })
+            .catch(err => {
+                console.warn("Could not fetch reviews from backend, using static fallback:", err);
+                // Fallback to static data
+                const fallback = theme
+                    ? dashboardData.reviews.filter(r => r.theme.toLowerCase() === (theme.name || "").toLowerCase())
+                    : dashboardData.reviews;
+                liveReviews = fallback;
+                renderList(fallback);
+                const list2 = document.getElementById("evidence-list");
+                if (list2) {
+                    const banner = document.createElement("div");
+                    banner.className = "evidence-offline-banner";
+                    banner.innerHTML = `⚠️ Backend offline — showing sample data`;
+                    list2.prepend(banner);
+                }
+            });
+    }
+
+    // Sentiment filter buttons
+    document.querySelectorAll(".evidence-filter").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".evidence-filter").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentSentiment = btn.dataset.sentiment;
+            fetchReviews();
+        });
+    });
+
+    // Sort dropdown
+    document.getElementById("evidence-sort")?.addEventListener("change", e => {
+        currentSort = e.target.value;
+        fetchReviews();
+    });
+
+    // Initial load
+    fetchReviews();
 }
 
 
@@ -2061,8 +1907,19 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
 
 function renderFullReview(review, index) {
 
-    const sentimentClass =
-        review.sentiment.toLowerCase();
+    const sentimentClass = (review.sentiment || "").toLowerCase();
+
+    const ratingStars = review.rating
+        ? `<span class="review-rating" title="${review.rating} / 5">
+               ${"★".repeat(Math.round(review.rating))}${"☆".repeat(5 - Math.round(review.rating))}
+           </span>`
+        : "";
+
+    const dateBadge = review.date
+        ? `<span class="review-date">${review.date}</span>` : "";
+
+    const productBadge = review.product
+        ? `<span class="review-product">${review.product}</span>` : "";
 
     return `
         <article class="full-review">
@@ -2071,50 +1928,36 @@ function renderFullReview(review, index) {
                 ${String(index + 1).padStart(2, "0")}
             </div>
 
-
             <div class="full-review-content">
 
                 <div class="full-review-header">
 
-                    <span
-                        class="
-                            review-sentiment
-                            ${sentimentClass}
-                        "
-                    >
+                    <span class="review-sentiment ${sentimentClass}">
                         ${review.sentiment}
                     </span>
 
                     <span class="review-theme">
-                        ${review.theme}
+                        ${review.theme || review.theme_name || ""}
                     </span>
 
                     <span class="review-region">
                         ${review.region}
                     </span>
 
-                </div>
+                    ${productBadge}
+                    ${ratingStars}
 
+                </div>
 
                 <p class="full-review-text">
                     "${review.text}"
                 </p>
 
-
                 <div class="review-context">
-
-                    <span>
-                        Customer feedback
-                    </span>
-
-                    <span>
-                        •
-                    </span>
-
-                    <span>
-                        ${review.region}
-                    </span>
-
+                    <span>Customer feedback</span>
+                    <span>•</span>
+                    <span>${review.region}</span>
+                    ${dateBadge ? `<span>•</span>${dateBadge}` : ""}
                 </div>
 
             </div>

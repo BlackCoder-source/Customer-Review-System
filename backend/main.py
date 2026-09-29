@@ -461,6 +461,64 @@ def compare_trends(start_date_1: str = Query(...), end_date_1: str = Query(...),
         period_2=get_period_trend(start_date_2, end_date_2)
     )
 
+@app.get(
+    "/reviews",
+    response_model=ThemeReviewsResponse,
+    summary="List All Reviews",
+    tags=["Reviews"]
+)
+def list_reviews(
+    sentiment: Optional[str] = Query(None, description="Filter by sentiment: positive, neutral, negative"),
+    theme_id: Optional[str] = Query(None, description="Filter by theme_id"),
+    product: Optional[str] = Query(None),
+    region: Optional[str] = Query(None),
+    date: Optional[str] = Query(None),
+    sort: Optional[str] = Query("date_desc", description="Sort order: date_desc, date_asc, rating_asc, rating_desc, sentiment"),
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> ThemeReviewsResponse:
+    """Return all reviews with optional filtering and sorting for the Evidence screen."""
+    df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+    if df.empty:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Review intelligence dataset is not yet initialized."
+        )
+
+    df = filter_reviews(df, product, region, date)
+
+    if sentiment:
+        df = df[df["sentiment"] == sentiment.lower()]
+    if theme_id:
+        df = df[df["theme_id"] == theme_id]
+
+    # Sorting
+    if sort == "date_asc":
+        df = df.sort_values("date", ascending=True)
+    elif sort == "date_desc":
+        df = df.sort_values("date", ascending=False)
+    elif sort == "rating_asc":
+        df = df.sort_values("rating", ascending=True)
+    elif sort == "rating_desc":
+        df = df.sort_values("rating", ascending=False)
+    elif sort == "sentiment":
+        df = df.sort_values("sentiment", ascending=True)
+
+    total = len(df)
+    df = df.iloc[offset: offset + limit]
+
+    reviews = [row_to_review_item(row) for _, row in df.iterrows()]
+    for review in reviews:
+        review.text = redact_text(review.text)
+
+    return ThemeReviewsResponse(
+        theme_id="all",
+        theme_name="All Reviews",
+        total=total,
+        reviews=reviews,
+    )
+
+
 @app.get("/summary/executive", tags=["Summary"])
 def executive_summary():
     reviews_df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())

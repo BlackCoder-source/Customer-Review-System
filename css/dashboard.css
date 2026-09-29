@@ -57,3 +57,48 @@
 .alert-tiles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.alert-tile{border:1px solid var(--color-border);border-radius:16px;background:#fff;padding:24px;text-align:left;cursor:pointer;box-shadow:var(--shadow-soft);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;display:flex;flex-direction:column;min-height:270px}.alert-tile:hover{transform:translateY(-3px);border-color:#d7a391;box-shadow:0 18px 42px rgba(40,35,30,.09)}.alert-tile-top{display:flex;justify-content:space-between;align-items:center}.alert-tile-number{font-size:11px;color:#aaa398;font-weight:800;letter-spacing:.08em}.alert-tile-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-top:26px}.alert-tile-title-row .eyebrow{margin-bottom:7px}.alert-tile-title-row h3{font-size:24px;letter-spacing:-.03em}.alert-tile-arrow{font-size:22px;color:#aaa398}.alert-tile-meta{font-size:12px;color:var(--color-muted);margin-top:9px}.alert-tile-meta span{padding:0 5px}.alert-tile-growth{display:flex;align-items:baseline;gap:10px;margin-top:28px}.alert-tile-growth strong{font-size:32px;color:var(--color-burgundy);letter-spacing:-.04em}.alert-tile-growth span{font-size:11px;color:var(--color-muted)}.alert-tile-footer{margin-top:auto;padding-top:18px;border-top:1px solid var(--color-border);display:flex;justify-content:space-between;gap:12px;font-size:10px;color:#aaa398;text-transform:uppercase;letter-spacing:.04em}.alert-tile-footer strong{color:var(--color-ink)}
 .executive-summary-card{background:#fff;border:1px solid var(--color-border);border-radius:14px;box-shadow:var(--shadow-soft);margin-bottom:18px}.summary-hero-header{display:flex;justify-content:space-between;align-items:flex-start;gap:28px}.summary-hero-header h2{font-size:clamp(24px,3vw,38px);line-height:1.15;letter-spacing:-.035em;max-width:900px}.summary-loading{opacity:.55}
 @media(max-width:800px){.alert-tiles-grid{grid-template-columns:1fr}.summary-hero-header{flex-direction:column}.trend-control-card{width:100%;min-width:0}.topbar-leading{gap:8px}.back-top-button{padding:8px 10px}}
+
+/* =========================================================
+   EVIDENCE SCREEN — ENHANCED  (PS #18)
+   ========================================================= */
+
+/* Toolbar layout: filters left, sort right */
+.evidence-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.evidence-filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.evidence-sort-group{display:flex;align-items:center;gap:8px}
+.evidence-sort-select{height:34px;padding:0 10px;border:1px solid var(--color-border);border-radius:8px;background:#fff;font-size:12px;font-weight:600;color:var(--color-ink);cursor:pointer;transition:.18s}
+.evidence-sort-select:hover{border-color:var(--color-primary)}
+
+/* Evidence filter buttons now live inside .evidence-filter-group */
+.evidence-filter-group .evidence-filter{padding:6px 14px;border:1px solid var(--color-border);border-radius:999px;background:#fff;font-size:12px;font-weight:700;color:var(--color-muted);cursor:pointer;transition:.18s}
+.evidence-filter-group .evidence-filter:hover{border-color:var(--color-primary);color:var(--color-primary)}
+.evidence-filter-group .evidence-filter.active{background:var(--color-ink);color:#fff;border-color:var(--color-ink)}
+
+/* Enriched review card */
+.review-rating{font-size:12px;color:#c9a84c;letter-spacing:1px;white-space:nowrap}
+.review-date{font-size:10px;color:var(--color-muted);font-variant-numeric:tabular-nums}
+.review-product{font-size:10px;background:#f0ede6;color:var(--color-muted);border-radius:4px;padding:2px 6px;font-weight:700}
+
+/* Skeleton loading shimmer */
+@keyframes skeleton-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skeleton-block{background:linear-gradient(90deg,#ebe7df 25%,#f5f2ec 50%,#ebe7df 75%);background-size:800px 100%;animation:skeleton-shimmer 1.4s ease-in-out infinite;display:inline-block}
+.evidence-skeleton{opacity:.8;pointer-events:none}
+
+/* Loading spinner in list */
+.evidence-loading-msg{padding:48px;text-align:center;color:var(--color-muted);display:flex;align-items:center;justify-content:center;gap:12px;font-size:14px}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--color-border);border-top-color:var(--color-primary);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Offline banner */
+.evidence-offline-banner{background:#fff8e6;border:1px solid #f0d48a;border-radius:8px;padding:10px 16px;font-size:12px;color:#8a6c00;margin-bottom:12px}
+
+/* =========================================================
+   REPORTS / EXECUTIVE SUMMARY — ENHANCED  (PS #18)
+   ========================================================= */
+
+/* AI status badge */
+.ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:#f0ede6;color:var(--color-muted);border:1px solid var(--color-border);white-space:nowrap;transition:background .3s,color .3s,border-color .3s}
+.ai-badge-done{background:#e8f4e8;color:#3a6b39;border-color:#b6d9b5 !important}
+.ai-badge-offline{background:#f5f2ec;color:var(--color-muted);border-color:var(--color-border) !important}
+.spinner-small{display:inline-block;width:10px;height:10px;border:1.5px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;opacity:.6}
+
