@@ -5,12 +5,14 @@ theme summaries, theme details with review previews, and full reviews by theme.
 Configured with CORS for React / Vite frontend consumption.
 """
 
-from typing import Dict, Any, List
+import io
+from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
 import logging
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 from models.schemas import (
     HealthResponse,
@@ -24,6 +26,10 @@ from models.schemas import (
     AlertsListResponse,
     AlertItem,
     ValidationResponse,
+    CompareTrendsResponse,
+    ThemeTrend,
+    PeriodTrend,
+    ExecutiveSummaryResponse,
 )
 from services.ingestion import load_and_clean_reviews
 from services.theme_extraction import extract_themes
@@ -32,6 +38,7 @@ from services.detection import detect_early_issues
 from services.root_cause import find_root_cause
 from services.pii_redaction import redact_text
 from services.validation import run_validation
+from services.summary import generate_executive_summary, summarizer
 
 # Configure logging
 logging.basicConfig(
@@ -454,27 +461,15 @@ def compare_trends(start_date_1: str = Query(...), end_date_1: str = Query(...),
         period_2=get_period_trend(start_date_2, end_date_2)
     )
 
-@app.get("/summary/executive", response_model=ExecutiveSummaryResponse, tags=["Summary"])
-def get_executive_summary() -> ExecutiveSummaryResponse:
-    df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
-    if df.empty:
-        raise HTTPException(status_code=503, detail="Not initialized")
-    
-    overall = compute_sentiment_breakdown(df)
-    theme_counts = df["theme_name"].value_counts()
-    top_theme = theme_counts.index[0] if not theme_counts.empty else "N/A"
-    
-    alerts = reviews_cache.get("alerts", [])
-    biggest_risk = alerts[0].get("theme_name") if alerts else "None"
-    
-    summary_text = (
-        f"The dashboard currently reflects {len(df)} total reviews with an overall sentiment of "
-        f"{overall.positive_pct}% positive and {overall.negative_pct}% negative. "
-        f"The most discussed theme is '{top_theme}'. "
-        f"The biggest emerging risk identified is '{biggest_risk}' based on recent velocity alerts. "
-        f"Action is recommended to monitor the '{biggest_risk}' trend closely."
-    )
-    return ExecutiveSummaryResponse(summary=summary_text)
+@app.get("/summary/executive", tags=["Summary"])
+def executive_summary():
+    reviews_df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
+    if reviews_df.empty:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Review intelligence dataset is not yet initialized."
+        )
+    return {"summary": generate_executive_summary(reviews_df)}
 
 @app.get("/export", tags=["Export"])
 def export_dashboard(product: Optional[str] = Query(None), region: Optional[str] = Query(None), date: Optional[str] = Query(None)):

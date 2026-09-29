@@ -744,7 +744,7 @@ function renderSummaryScreen(regenerated = false) {
 
                     <section class="summary-hero card card-elevated">
                         <p class="eyebrow">${regenerated ? "REGENERATED SUMMARY" : "EXECUTIVE READOUT"}</p>
-                        <h2>${summary.headline}</h2>
+                        <h2 id="executive-summary-text"><span class="summary-loading">Generating AI executive summary...</span></h2>
                         <span class="summary-timestamp">Generated ${timestamp}</span>
                     </section>
 
@@ -765,6 +765,25 @@ function renderSummaryScreen(regenerated = false) {
     document.getElementById("regenerate-summary")?.addEventListener("click", () => renderSummaryScreen(true));
     document.getElementById("summary-export")?.addEventListener("click", openExportPanel);
     document.getElementById("logout-button")?.addEventListener("click", () => { appState.selectedRole = null; renderLoginScreen(); });
+
+    // Fetch AI-generated summary from backend
+    const summaryHeadlineElem = document.getElementById("executive-summary-text");
+    fetch("http://127.0.0.1:8000/summary/executive")
+        .then((res) => {
+            if (!res.ok) throw new Error("Backend response error: " + res.status);
+            return res.json();
+        })
+        .then((data) => {
+            if (data && data.summary && summaryHeadlineElem) {
+                summaryHeadlineElem.innerText = data.summary;
+            }
+        })
+        .catch((err) => {
+            console.warn("Could not fetch AI executive summary from backend, using fallback:", err);
+            if (summaryHeadlineElem) {
+                summaryHeadlineElem.innerText = summary.headline;
+            }
+        });
 }
 
 function openExportPanel() {
