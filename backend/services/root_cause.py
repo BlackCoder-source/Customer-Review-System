@@ -1,46 +1,35 @@
+from typing import Optional, Dict, Any
 import pandas as pd
-import os
-from typing import Dict, Any, Optional
 
-EVENTS_CSV_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "events.csv")
 
-def find_root_cause(alert: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def find_root_cause(alert_date: str, events_df: pd.DataFrame) -> Optional[Dict[str, Any]]:
+    """Checks events_df for any event within 5 days before alert_date,
+
+    and returns the matching event row as a dict, or None if no match.
     """
-    Correlates a detected spike against data/events.csv.
-    Checks for any event within a few days before the spike started,
-    matching product/region.
-    """
-    if not os.path.exists(EVENTS_CSV_PATH):
+    if events_df is None or events_df.empty:
         return None
-        
+
     try:
-        events_df = pd.read_csv(EVENTS_CSV_PATH)
+        alert_dt = pd.to_datetime(alert_date)
     except Exception:
         return None
-        
-    if events_df.empty:
+
+    events_df_copy = events_df.copy()
+    events_df_copy["date"] = pd.to_datetime(events_df_copy["date"])
+
+    window_start = alert_dt - pd.Timedelta(days=5)
+    matching = events_df_copy[
+        (events_df_copy["date"] >= window_start) & (events_df_copy["date"] <= alert_dt)
+    ]
+
+    if matching.empty:
         return None
-        
-    events_df['date'] = pd.to_datetime(events_df['date'])
-    
-    spike_date = pd.to_datetime(alert['start_date_of_spike'])
-    window_start = spike_date - pd.Timedelta(days=7) # Look back up to 7 days
-    
-    mask = (
-        (events_df['product'] == alert['affected_product']) &
-        (events_df['region'] == alert['affected_region']) &
-        (events_df['date'] >= window_start) &
-        (events_df['date'] <= spike_date)
-    )
-    
-    matched = events_df[mask]
-    if not matched.empty:
-        latest_event = matched.sort_values(by='date', ascending=False).iloc[0]
-        return {
-            "event_type": str(latest_event.get('event_type', 'unknown')),
-            "date": latest_event['date'].strftime('%Y-%m-%d'),
-            "product": str(latest_event.get('product', 'unknown')),
-            "region": str(latest_event.get('region', 'unknown')),
-            "description": str(latest_event.get('description', ''))
-        }
-    return None
+
+    row = matching.iloc[0].to_dict()
+    if "date" in row and hasattr(row["date"], "strftime"):
+        row["date"] = str(row["date"].strftime("%Y-%m-%d"))
+    elif "date" in row:
+        row["date"] = str(row["date"])
+
+    return row
