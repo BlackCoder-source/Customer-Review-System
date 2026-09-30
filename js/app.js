@@ -76,6 +76,7 @@ const dashboardData = {
         {
             id: "delivery-delay",
             title: "Delivery delays",
+            theme: "Delivery",
             growth: 34,
             severity: "high",
             product: "Wireless Earbuds",
@@ -90,6 +91,7 @@ const dashboardData = {
         {
             id: "packaging",
             title: "Packaging damage",
+            theme: "Delivery",
             growth: 21,
             severity: "medium",
             product: "Electronics",
@@ -104,6 +106,7 @@ const dashboardData = {
         {
             id: "support-response",
             title: "Support response time",
+            theme: "Customer Support",
             growth: 17,
             severity: "medium",
             product: "All Products",
@@ -118,6 +121,7 @@ const dashboardData = {
         {
             id: "pricing",
             title: "Pricing complaints",
+            theme: "Pricing",
             growth: 9,
             severity: "low",
             product: "Smart Devices",
@@ -132,39 +136,220 @@ const dashboardData = {
 
     reviews: [
         {
-            text:
-                "My order took almost two weeks to arrive even though the estimated delivery date was much earlier.",
+            text: "My order took almost two weeks to arrive even though the estimated delivery date was much earlier.",
             sentiment: "Negative",
             theme: "Delivery",
             region: "North Region",
-            product: "Wireless Earbuds"
+            product: "Wireless Earbuds",
+            rating: 1,
+            date: "2026-08-01"
         },
-
         {
-            text:
-                "The product arrived on time and the quality was exactly what I expected.",
+            text: "The product arrived on time and the quality was exactly what I expected.",
             sentiment: "Positive",
             theme: "Product Quality",
             region: "West Region",
-            product: "Electronics"
+            product: "Electronics",
+            rating: 5,
+            date: "2026-08-02"
         },
-
         {
-            text:
-                "Customer support eventually solved my issue, but I had to wait several days for a response.",
+            text: "Customer support eventually solved my issue, but I had to wait several days for a response.",
             sentiment: "Negative",
             theme: "Customer Support",
             region: "South Region",
-            product: "All Products"
+            product: "All Products",
+            rating: 2,
+            date: "2026-08-03"
         },
-
         {
-            text:
-                "The packaging was damaged when the package arrived, although the product itself was fine.",
+            text: "The packaging was damaged when the package arrived, although the product itself was fine.",
             sentiment: "Negative",
             theme: "Delivery",
             region: "West Region",
-            product: "Electronics"
+            product: "Electronics",
+            rating: 2,
+            date: "2026-08-04"
+        },
+        {
+            text: "The subscription pricing skyrocketed overnight without notice. Hidden fees make this unusable.",
+            sentiment: "Negative",
+            theme: "Pricing",
+            region: "Central Region",
+            product: "Smart Devices",
+            rating: 1,
+            date: "2026-08-05"
+        },
+        {
+            text: "Software crashed twice while editing high-resolution files. Lost 30 minutes of work. Urgent bugfix needed.",
+            sentiment: "Negative",
+            theme: "Product Quality",
+            region: "East Region",
+            product: "Electronics",
+            rating: 2,
+            date: "2026-08-06"
+        },
+        {
+            text: "Fast shipping! Arrived 2 days earlier than scheduled in pristine condition. Great packaging.",
+            sentiment: "Positive",
+            theme: "Delivery",
+            region: "North Region",
+            product: "Wireless Earbuds",
+            rating: 5,
+            date: "2026-08-07"
+        },
+        {
+            text: "Great product overall. The display is crisp and legible under direct sunlight. Setup was seamless.",
+            sentiment: "Positive",
+            theme: "Product Quality",
+            region: "West Region",
+            product: "Smart Devices",
+            rating: 4,
+            date: "2026-08-08"
+        },
+        {
+            text: "Representative was polite and resolved my warranty claim within 10 minutes. Stellar customer service.",
+            sentiment: "Positive",
+            theme: "Customer Support",
+            region: "South Region",
+            product: "All Products",
+            rating: 5,
+            date: "2026-08-09"
+        },
+        {
+            text: "Decent value for money, but the recurring plan could be structured more transparently.",
+            sentiment: "Neutral",
+            theme: "Pricing",
+            region: "Central Region",
+            product: "Smart Devices",
+            rating: 3,
+            date: "2026-08-10"
+        },
+        {
+            text: "The courier left the package out in the rain without any plastic wrap. Outer box was soaked.",
+            sentiment: "Negative",
+            theme: "Delivery",
+            region: "North Region",
+            product: "Electronics",
+            rating: 1,
+            date: "2026-08-11"
+        },
+        {
+            text: "Support responded in 24 hours. The answer was automated, but the second attempt was helpful.",
+            sentiment: "Neutral",
+            theme: "Customer Support",
+            region: "South Region",
+            product: "All Products",
+            rating: 3,
+            date: "2026-08-12"
+        },
+        {
+            text: "Exceptional build quality and very snappy interface! Battery life easily lasts 3 full days.",
+            sentiment: "Positive",
+            theme: "Product Quality",
+            region: "East Region",
+            product: "Smart Devices",
+            rating: 5,
+            date: "2026-08-13"
+        },
+        {
+            text: "Price increased by 20% compared to last year with no added features.",
+            sentiment: "Negative",
+            theme: "Pricing",
+            region: "Central Region",
+            product: "Wireless Earbuds",
+            rating: 2,
+            date: "2026-08-14"
+        },
+        {
+            text: "Delivery arrived on time and trackable every step of the way.",
+            sentiment: "Positive",
+            theme: "Delivery",
+            region: "West Region",
+            product: "Electronics",
+            rating: 5,
+            date: "2026-08-15"
+        },
+        {
+            text: "Fairly average wireless earbuds. Sound is decent, but nothing extraordinary for this price tier.",
+            sentiment: "Neutral",
+            theme: "Product Quality",
+            region: "North Region",
+            product: "Wireless Earbuds",
+            rating: 3,
+            date: "2026-08-16"
+        },
+        {
+            text: "Took 4 days to respond to my ticket and then closed it without resolving the glitch.",
+            sentiment: "Negative",
+            theme: "Customer Support",
+            region: "South Region",
+            product: "All Products",
+            rating: 1,
+            date: "2026-08-17"
+        },
+        {
+            text: "Competitive price compared to other brands on the market. Worth every penny.",
+            sentiment: "Positive",
+            theme: "Pricing",
+            region: "East Region",
+            product: "Smart Devices",
+            rating: 5,
+            date: "2026-08-18"
+        },
+        {
+            text: "Shipment status remained stuck on 'In Transit' for 10 days before any update was posted.",
+            sentiment: "Negative",
+            theme: "Delivery",
+            region: "North Region",
+            product: "Wireless Earbuds",
+            rating: 2,
+            date: "2026-08-19"
+        },
+        {
+            text: "Ergonomic design and premium feel. Fits perfectly and easy to operate.",
+            sentiment: "Positive",
+            theme: "Product Quality",
+            region: "West Region",
+            product: "Electronics",
+            rating: 5,
+            date: "2026-08-20"
+        },
+        {
+            text: "The help center team helped me set up my configuration remotely. Highly satisfied!",
+            sentiment: "Positive",
+            theme: "Customer Support",
+            region: "South Region",
+            product: "All Products",
+            rating: 5,
+            date: "2026-08-21"
+        },
+        {
+            text: "Shipping time was acceptable, but tracking updates were delayed by 24 hours.",
+            sentiment: "Neutral",
+            theme: "Delivery",
+            region: "Central Region",
+            product: "Wireless Earbuds",
+            rating: 3,
+            date: "2026-08-22"
+        },
+        {
+            text: "Build quality feels plasticky and the left side stopped syncing after two weeks.",
+            sentiment: "Negative",
+            theme: "Product Quality",
+            region: "North Region",
+            product: "Wireless Earbuds",
+            rating: 1,
+            date: "2026-08-23"
+        },
+        {
+            text: "Unexpected checkout fees added right before payment.",
+            sentiment: "Negative",
+            theme: "Pricing",
+            region: "West Region",
+            product: "Electronics",
+            rating: 2,
+            date: "2026-08-24"
         }
     ]
 };
@@ -1152,12 +1337,11 @@ function renderThemeDetail(theme) {
 
     const app = document.getElementById("app");
 
-    const relatedReviews =
-        dashboardData.reviews.filter(
-            review =>
-                review.theme.toLowerCase() ===
-                theme.name.toLowerCase()
-        );
+    const lowerTheme = (theme.name || "").toLowerCase();
+    const relatedReviews = dashboardData.reviews.filter(review => {
+        const revTheme = (review.theme || review.theme_name || "").toLowerCase();
+        return revTheme === lowerTheme || revTheme.includes(lowerTheme) || lowerTheme.includes(revTheme);
+    });
 
     app.innerHTML = `
         <div class="dashboard-layout">
@@ -1397,20 +1581,19 @@ function renderThemeDetail(theme) {
 
                             </div>
 
-                            <span class="section-period">
-                                ${relatedReviews.length}
-                                reviews available
+                            <span class="section-period" id="theme-detail-count">
+                                ${relatedReviews.length} reviews available
                             </span>
 
                         </div>
 
 
-                        <div class="review-preview-list">
+                        <div class="review-preview-list" id="theme-detail-list">
 
                             ${
                                 relatedReviews.length
                                     ? relatedReviews
-                                        .slice(0, 3)
+                                        .slice(0, 5)
                                         .map(renderReviewPreview)
                                         .join("")
                                     : `
@@ -1443,6 +1626,35 @@ function renderThemeDetail(theme) {
 
         </div>
     `;
+
+    // Attempt live fetch from backend for theme review previews if backend is connected
+    const BASE = "http://127.0.0.1:8000";
+    const themeUrl = theme.theme_id
+        ? `${BASE}/themes/${theme.theme_id}/reviews`
+        : `${BASE}/reviews?theme_name=${encodeURIComponent(theme.name)}&limit=50`;
+
+    fetch(themeUrl)
+        .then(res => { if (!res.ok) throw new Error("Backend error " + res.status); return res.json(); })
+        .then(data => {
+            const liveReviews = (data.reviews || []).map(r => ({
+                text: r.text,
+                sentiment: r.sentiment ? (r.sentiment.charAt(0).toUpperCase() + r.sentiment.slice(1)) : "Neutral",
+                theme: r.theme_name || r.theme || theme.name,
+                region: r.region || "All Regions",
+                product: r.product || ""
+            }));
+            if (liveReviews.length > 0) {
+                const countEl = document.getElementById("theme-detail-count");
+                const listEl = document.getElementById("theme-detail-list");
+                if (countEl) countEl.textContent = `${liveReviews.length} reviews available`;
+                if (listEl) {
+                    listEl.innerHTML = liveReviews.slice(0, 5).map(renderReviewPreview).join("");
+                }
+            }
+        })
+        .catch(err => {
+            console.warn("Using static fallback for theme detail:", err);
+        });
 
 
     /* =========================================
@@ -2260,7 +2472,7 @@ function renderAlertsScreen() {
                         </div>
 
 
-                        <div class="alert-tiles-grid">
+                        <div class="alert-tiles-grid" id="alerts-list-grid">
 
                             ${dashboardData.alerts
                                 .slice()
@@ -2284,6 +2496,43 @@ function renderAlertsScreen() {
         </div>
     `;
 
+    // Fetch live backend alerts if active
+    fetch("http://127.0.0.1:8000/alerts")
+        .then(res => { if (!res.ok) throw new Error("API error " + res.status); return res.json(); })
+        .then(data => {
+            if (data.alerts && data.alerts.length > 0) {
+                const apiAlerts = data.alerts.map(a => ({
+                    id: a.alert_id,
+                    alert_id: a.alert_id,
+                    title: a.issue_type ? (a.issue_type.charAt(0).toUpperCase() + a.issue_type.slice(1)) : a.alert_id,
+                    growth: Math.round((a.growth_rate || 0) * 100),
+                    severity: a.severity || "medium",
+                    product: a.affected_product || "All Products",
+                    region: a.affected_region || "All Regions",
+                    started: a.start_date_of_spike || "Recent",
+                    reason: a.root_cause ? a.root_cause.summary : `Spike detected in ${a.affected_product || 'product'} reviews.`,
+                    action: "Investigate affected customer feedback.",
+                    theme: a.affected_product || "Delivery"
+                }));
+                const gridEl = document.getElementById("alerts-list-grid");
+                if (gridEl) {
+                    gridEl.innerHTML = apiAlerts.map(renderDetailedAlertRow).join("");
+                    gridEl.querySelectorAll("[data-detailed-alert]").forEach(row => {
+                        row.addEventListener("click", () => {
+                            const aid = row.dataset.detailedAlert;
+                            const found = apiAlerts.find(item => item.id === aid || item.alert_id === aid);
+                            if (found) {
+                                appState.selectedAlert = found;
+                                renderAlertDetail(found);
+                            }
+                        });
+                    });
+                }
+            }
+        })
+        .catch(err => {
+            console.warn("Could not fetch live alerts, using static fallback:", err);
+        });
 
     document.getElementById("back-to-dashboard")?.addEventListener("click", renderDashboard);
 
@@ -2448,14 +2697,20 @@ function renderAlertDetail(alert) {
 
     const app = document.getElementById("app");
 
-    const relatedReviews =
-        dashboardData.reviews.filter(review =>
-            review.theme.toLowerCase() ===
-            (
-                alert.theme ||
-                alert.title
-            ).toLowerCase()
-        );
+    const alertTheme = (alert.theme || "").toLowerCase();
+    const alertTitle = (alert.title || "").toLowerCase();
+    const relatedReviews = dashboardData.reviews.filter(review => {
+        const revTheme = (review.theme || review.theme_name || "").toLowerCase();
+        const revText = (review.text || "").toLowerCase();
+        if (alertTheme && (revTheme === alertTheme || revTheme.includes(alertTheme) || alertTheme.includes(revTheme))) {
+            return true;
+        }
+        if (alertTitle.includes("packaging") && (revText.includes("packag") || revText.includes("damage"))) return true;
+        if ((alertTitle.includes("delivery") || alertTitle.includes("delay")) && (revTheme.includes("delivery") || revText.includes("deliver") || revText.includes("arriv") || revText.includes("ship"))) return true;
+        if ((alertTitle.includes("support") || alertTitle.includes("response")) && (revTheme.includes("support") || revText.includes("support") || revText.includes("wait") || revText.includes("respond"))) return true;
+        if ((alertTitle.includes("pric") || alertTitle.includes("fee")) && (revTheme.includes("pricing") || revText.includes("price") || revText.includes("fee") || revText.includes("cost"))) return true;
+        return false;
+    });
 
 
     /*
@@ -2839,20 +3094,19 @@ function renderAlertDetail(alert) {
                             </div>
 
 
-                            <span class="section-period">
-                                ${relatedReviews.length}
-                                related reviews
+                            <span class="section-period" id="alert-evidence-count">
+                                ${relatedReviews.length} related reviews
                             </span>
 
                         </div>
 
 
-                        <div class="alert-evidence-list">
+                        <div class="alert-evidence-list" id="alert-evidence-list">
 
                             ${
                                 relatedReviews.length
                                     ? relatedReviews
-                                        .slice(0, 3)
+                                        .slice(0, 5)
                                         .map(
                                             renderAlertEvidence
                                         )
@@ -2868,22 +3122,16 @@ function renderAlertDetail(alert) {
                         </div>
 
 
-                        ${
-                            relatedReviews.length
-                                ? `
-                                    <div class="detail-action">
+                        <div class="detail-action">
 
-                                        <button
-                                            class="btn btn-primary"
-                                            id="view-alert-evidence"
-                                        >
-                                            View all evidence →
-                                        </button>
+                            <button
+                                class="btn btn-primary"
+                                id="view-alert-evidence"
+                            >
+                                View all evidence →
+                            </button>
 
-                                    </div>
-                                  `
-                                : ""
-                        }
+                        </div>
 
                     </section>
 
@@ -2925,6 +3173,53 @@ function renderAlertDetail(alert) {
 
         </div>
     `;
+
+
+    // Fetch live backend evidence for this alert if backend is active
+    const BASE = "http://127.0.0.1:8000";
+    const alertId = alert.alert_id || alert.id;
+    const primaryUrl = alertId ? `${BASE}/alerts/${alertId}` : null;
+    const fallbackUrl = `${BASE}/reviews?theme_name=${encodeURIComponent(alert.theme || alert.title)}&limit=20`;
+
+    const handleLiveAlertReviews = (rawList) => {
+        if (!rawList || rawList.length === 0) return;
+        const liveList = rawList.map(r => ({
+            text: r.text,
+            sentiment: r.sentiment ? (r.sentiment.charAt(0).toUpperCase() + r.sentiment.slice(1)) : "Negative",
+            theme: r.theme_name || r.theme || alert.theme || alert.title,
+            region: r.region || alert.region || "All Regions",
+            product: r.product || alert.product || ""
+        }));
+        const countEl = document.getElementById("alert-evidence-count");
+        const listEl = document.getElementById("alert-evidence-list");
+        if (countEl) countEl.textContent = `${liveList.length} related reviews`;
+        if (listEl) {
+            listEl.innerHTML = liveList.slice(0, 5).map(renderAlertEvidence).join("");
+        }
+    };
+
+    if (primaryUrl) {
+        fetch(primaryUrl)
+            .then(res => { if (!res.ok) throw new Error("Alert API error " + res.status); return res.json(); })
+            .then(data => {
+                if (data.supporting_reviews && data.supporting_reviews.length > 0) {
+                    handleLiveAlertReviews(data.supporting_reviews);
+                } else {
+                    return fetch(fallbackUrl).then(r => r.json()).then(d => handleLiveAlertReviews(d.reviews));
+                }
+            })
+            .catch(() => {
+                fetch(fallbackUrl)
+                    .then(r => r.json())
+                    .then(d => handleLiveAlertReviews(d.reviews))
+                    .catch(err => console.warn("Live alert fetch failed:", err));
+            });
+    } else {
+        fetch(fallbackUrl)
+            .then(r => r.json())
+            .then(d => handleLiveAlertReviews(d.reviews))
+            .catch(err => console.warn("Live alert fetch failed:", err));
+    }
 
 
     /* =========================================
