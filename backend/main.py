@@ -39,6 +39,7 @@ from services.root_cause import find_root_cause
 from services.pii_redaction import redact_text
 from services.validation import run_validation
 from services.summary import generate_executive_summary, summarizer
+from services.ollama_service import is_ollama_available, get_available_models, select_best_model
 
 # Configure logging
 logging.basicConfig(
@@ -206,6 +207,24 @@ def health_check() -> HealthResponse:
         version="1.0.0",
         total_reviews_loaded=len(df)
     )
+
+
+@app.get(
+    "/ollama/status",
+    summary="Ollama LLM Status Check",
+    tags=["System"]
+)
+def ollama_status():
+    """Return status of local Ollama server, installed models, and currently selected model."""
+    available = is_ollama_available()
+    models = get_available_models() if available else []
+    selected = select_best_model() if available else None
+    return {
+        "ollama_available": available,
+        "installed_models": models,
+        "selected_model": selected,
+        "base_url": "http://localhost:11434"
+    }
 
 
 @app.get(
