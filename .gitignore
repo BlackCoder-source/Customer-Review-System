@@ -25,5 +25,17 @@ venv/
 # Environment variables
 .env
 
+# IDE / Editor
+.idea/
+.vscode/
+
+# Models and Large Binaries
+*.safetensors
+*.pt
+*.pth
+*.bin
+checkpoint-*/
+checkpoint-*
+
 # MacOS
 .DS_Store

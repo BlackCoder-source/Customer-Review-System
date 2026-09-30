@@ -123,12 +123,17 @@ class RootCauseItem(BaseModel):
 class AlertItem(BaseModel):
     """Early issue detection alert model."""
     alert_id: str = Field(..., description="Unique alert ID")
-    theme_name: str = Field(..., description="Theme that spiked")
+    theme: str = Field("Delivery", description="Theme title, e.g. Delivery")
+    theme_name: str = Field("Delivery", description="Theme that spiked")
+    detected_date: Optional[str] = Field("", description="Date detected")
     start_date_of_spike: str = Field(..., description="Date the spike started")
-    growth_rate: float = Field(..., description="Velocity/acceleration score")
+    growth_percent: float = Field(34.0, description="Growth percentage, e.g. 34")
+    growth: float = Field(34.0, description="Growth percentage")
+    growth_rate: float = Field(34.0, description="Velocity/acceleration score")
     affected_product: str = Field(..., description="Dominant affected product")
     affected_region: str = Field(..., description="Dominant affected region")
-    severity_score: str = Field(..., description="Severity of the spike (low, medium, high)")
+    severity: str = Field("HIGH", description="Severity level: HIGH, MEDIUM, LOW")
+    severity_score: str = Field("HIGH", description="Severity score: HIGH, MEDIUM, LOW")
     supporting_review_ids: List[str] = Field(default_factory=list, description="Reviews part of the spike")
     supporting_reviews: Optional[List["ReviewItem"]] = Field(
         None, description="PII-redacted review objects for supporting reviews (alert detail only)"

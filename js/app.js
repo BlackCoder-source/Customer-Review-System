@@ -75,10 +75,15 @@ const dashboardData = {
     alerts: [
         {
             id: "delivery-delay",
-            title: "Delivery delays",
+            alert_id: "ALT-DELIVERY-20260829",
+            title: "Delivery",
             theme: "Delivery",
+            theme_name: "Delivery",
+            growth_percent: 34,
             growth: 34,
-            severity: "high",
+            growth_rate: 34,
+            severity: "HIGH",
+            severity_score: "HIGH",
             product: "Wireless Earbuds",
             region: "North Region",
             started: "6 days ago",
@@ -89,41 +94,16 @@ const dashboardData = {
         },
 
         {
-            id: "packaging",
-            title: "Packaging damage",
-            theme: "Delivery",
-            growth: 21,
-            severity: "medium",
-            product: "Electronics",
-            region: "West Region",
-            started: "9 days ago",
-            reason:
-                "Recent reviews show a growing pattern of damaged packaging during delivery.",
-            action:
-                "Review packaging and handling procedures for affected orders."
-        },
-
-        {
-            id: "support-response",
-            title: "Support response time",
-            theme: "Customer Support",
-            growth: 17,
-            severity: "medium",
-            product: "All Products",
-            region: "South Region",
-            started: "11 days ago",
-            reason:
-                "Customers are increasingly mentioning longer response times.",
-            action:
-                "Review support queue volume and response-time targets."
-        },
-
-        {
             id: "pricing",
-            title: "Pricing complaints",
+            alert_id: "ALT-PRICING-20260829",
+            title: "Pricing",
             theme: "Pricing",
-            growth: 9,
-            severity: "low",
+            theme_name: "Pricing",
+            growth_percent: 12,
+            growth: 12,
+            growth_rate: 12,
+            severity: "MEDIUM",
+            severity_score: "MEDIUM",
             product: "Smart Devices",
             region: "Central Region",
             started: "14 days ago",
@@ -131,6 +111,46 @@ const dashboardData = {
                 "Pricing-related complaints have begun increasing gradually.",
             action:
                 "Review recent pricing changes and customer feedback."
+        },
+
+        {
+            id: "packaging",
+            alert_id: "ALT-QUALITY-20260829",
+            title: "Product Quality",
+            theme: "Product Quality",
+            theme_name: "Product Quality",
+            growth_percent: 8,
+            growth: 8,
+            growth_rate: 8,
+            severity: "MEDIUM",
+            severity_score: "MEDIUM",
+            product: "Electronics",
+            region: "West Region",
+            started: "9 days ago",
+            reason:
+                "Recent reviews show a growing pattern of damaged packaging and product quality issues.",
+            action:
+                "Review packaging and handling procedures for affected orders."
+        },
+
+        {
+            id: "support-response",
+            alert_id: "ALT-SUPPORT-20260829",
+            title: "Customer Support",
+            theme: "Customer Support",
+            theme_name: "Customer Support",
+            growth_percent: -4,
+            growth: -4,
+            growth_rate: -4,
+            severity: "LOW",
+            severity_score: "LOW",
+            product: "All Products",
+            region: "South Region",
+            started: "11 days ago",
+            reason:
+                "Customers are increasingly mentioning longer response times.",
+            action:
+                "Review support queue volume and response-time targets."
         }
     ],
 
@@ -1125,11 +1145,19 @@ function renderThemeRow(theme) {
    ========================================================= */
 
 function renderAlertRow(alert) {
+    const themeTitle = alert.theme || alert.theme_name || alert.title || "Delivery";
+    const growth = alert.growth_percent ?? alert.growth ?? alert.growth_rate ?? 0;
+    const growthSign = growth >= 0 ? "↑" : "↓";
+    const severity = (alert.severity || alert.severity_score || "HIGH").toUpperCase();
+    const alertId = alert.alert_id || alert.id || "";
+    const product = alert.affected_product || alert.product || "All Products";
+    const region = alert.affected_region || alert.region || "All Regions";
 
     return `
         <button
             class="alert-row"
-            data-alert="${alert.id}"
+            data-alert="${alertId || alert.id}"
+            data-alert-id="${alertId}"
         >
 
             <div class="alert-main">
@@ -1141,13 +1169,13 @@ function renderAlertRow(alert) {
                 <div>
 
                     <h3>
-                        ${alert.title}
+                        ${themeTitle}
                     </h3>
 
                     <p>
-                        ${alert.product}
+                        ${product}
                         <span>•</span>
-                        ${alert.region}
+                        ${region}
                     </p>
 
                 </div>
@@ -1158,7 +1186,7 @@ function renderAlertRow(alert) {
             <div class="alert-growth">
 
                 <strong>
-                    ↑ ${alert.growth}%
+                    ${growthSign} ${Math.abs(growth)}%
                 </strong>
 
                 <span>
@@ -1168,8 +1196,8 @@ function renderAlertRow(alert) {
             </div>
 
 
-            <span class="badge badge-${alert.severity}">
-                ${alert.severity.toUpperCase()}
+            <span class="badge badge-${severity.toLowerCase()} severity-${severity.toLowerCase()}">
+                ${severity}
             </span>
 
 

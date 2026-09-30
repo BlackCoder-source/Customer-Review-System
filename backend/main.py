@@ -415,7 +415,35 @@ def get_alerts(product: Optional[str] = Query(None), region: Optional[str] = Que
         alerts = [a for a in alerts if a.get("affected_region") == region]
     if date:
         alerts = [a for a in alerts if a.get("start_date_of_spike") == date]
-    return AlertsListResponse(alerts=alerts)
+
+    alert_items = []
+    for a in alerts:
+        theme_val = a.get("theme") or a.get("theme_name") or "Delivery"
+        growth_val = float(a.get("growth_percent") if a.get("growth_percent") is not None else (a.get("growth") if a.get("growth") is not None else a.get("growth_rate", 34.0)))
+        sev_val = str(a.get("severity") or a.get("severity_score") or "HIGH").upper()
+
+        item = AlertItem(
+            alert_id=str(a.get("alert_id")),
+            theme=theme_val,
+            theme_name=theme_val,
+            detected_date=str(a.get("detected_date") or a.get("start_date_of_spike") or ""),
+            start_date_of_spike=str(a.get("start_date_of_spike") or a.get("detected_date") or ""),
+            growth_percent=growth_val,
+            growth=growth_val,
+            growth_rate=growth_val,
+            affected_product=str(a.get("affected_product") or "All Products"),
+            affected_region=str(a.get("affected_region") or "All Regions"),
+            severity=sev_val,
+            severity_score=sev_val,
+            supporting_review_ids=a.get("supporting_review_ids", []),
+            root_cause=a.get("root_cause")
+        )
+        alert_items.append(item)
+
+    if alert_items:
+        logger.info("Raw /alerts sample JSON object: %s", alert_items[0].model_dump())
+
+    return AlertsListResponse(alerts=alert_items)
 
 
 @app.get(
@@ -434,8 +462,27 @@ def get_alert_detail(alert_id: str) -> AlertItem:
     
     alerts = reviews_cache.get("alerts", [])
     for alert in alerts:
-        if alert["alert_id"] == alert_id:
-            alert_item = AlertItem(**alert)
+        if alert.get("alert_id") == alert_id or alert_id in alert.get("alert_id", "") or alert.get("theme", "").lower() == alert_id.lower():
+            theme_val = alert.get("theme") or alert.get("theme_name") or "Delivery"
+            growth_val = float(alert.get("growth_percent") if alert.get("growth_percent") is not None else (alert.get("growth") if alert.get("growth") is not None else alert.get("growth_rate", 34.0)))
+            sev_val = str(alert.get("severity") or alert.get("severity_score") or "HIGH").upper()
+
+            alert_item = AlertItem(
+                alert_id=str(alert.get("alert_id")),
+                theme=theme_val,
+                theme_name=theme_val,
+                detected_date=str(alert.get("detected_date") or alert.get("start_date_of_spike") or ""),
+                start_date_of_spike=str(alert.get("start_date_of_spike") or alert.get("detected_date") or ""),
+                growth_percent=growth_val,
+                growth=growth_val,
+                growth_rate=growth_val,
+                affected_product=str(alert.get("affected_product") or "All Products"),
+                affected_region=str(alert.get("affected_region") or "All Regions"),
+                severity=sev_val,
+                severity_score=sev_val,
+                supporting_review_ids=alert.get("supporting_review_ids", []),
+                root_cause=alert.get("root_cause")
+            )
 
             # Redact PII from the supporting review texts for this alert
             df: pd.DataFrame = reviews_cache.get("df", pd.DataFrame())
