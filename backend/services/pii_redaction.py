@@ -33,23 +33,33 @@ def _get_analyzer():
         return _analyzer
 
     try:
+        import spacy
         from presidio_analyzer import AnalyzerEngine
-        from presidio_analyzer.nlp_engine import NlpEngineProvider
+        from presidio_analyzer.nlp_engine import SpacyNlpEngine, NlpEngineProvider
 
         # Try the large model first; fall back to the small one
         for model in ("en_core_web_lg", "en_core_web_sm"):
             try:
-                configuration = {
-                    "nlp_engine_name": "spacy",
-                    "models": [{"lang_code": "en", "model_name": model}],
-                }
-                provider = NlpEngineProvider(nlp_configuration=configuration)
-                nlp_engine = provider.create_engine()
-                _analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
-                logger.info("Presidio AnalyzerEngine initialised with spaCy model '%s'.", model)
-                return _analyzer
-            except OSError:
-                logger.warning("spaCy model '%s' not found, trying next.", model)
+                # Check if package is installed before attempting load to avoid spacy auto-download / pip lock errors
+                if spacy.util.is_package(model):
+                    nlp = spacy.load(model)
+                    nlp_engine = SpacyNlpEngine(models={"en": nlp})
+                    _analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
+                    logger.info("Presidio AnalyzerEngine initialised with spaCy model '%s'.", model)
+                    return _analyzer
+                else:
+                    # Fallback to provider creation if spacy load is not directly available
+                    configuration = {
+                        "nlp_engine_name": "spacy",
+                        "models": [{"lang_code": "en", "model_name": model}],
+                    }
+                    provider = NlpEngineProvider(nlp_configuration=configuration)
+                    nlp_engine = provider.create_engine()
+                    _analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
+                    logger.info("Presidio AnalyzerEngine initialised with spaCy model '%s'.", model)
+                    return _analyzer
+            except (Exception, SystemExit, OSError) as exc:
+                logger.warning("spaCy model '%s' loading failed (%s), trying next.", model, exc)
 
         # If no spaCy model is available fall back to the default
         # (regex + pattern only, no NER)
@@ -59,9 +69,9 @@ def _get_analyzer():
         )
         return _analyzer
 
-    except ImportError as exc:
+    except (ImportError, Exception, SystemExit) as exc:
         logger.error(
-            "presidio-analyzer is not installed – PII redaction disabled. %s", exc
+            "presidio-analyzer issue – PII redaction falling back. %s", exc
         )
         return None
 

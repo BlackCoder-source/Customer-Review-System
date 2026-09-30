@@ -84,7 +84,7 @@ def generate_ollama_completion(prompt: str, system_prompt: Optional[str] = None,
         resp = requests.post(
             f"{OLLAMA_BASE_URL}/api/generate",
             json=payload,
-            timeout=30
+            timeout=90
         )
         if resp.status_code == 200:
             data = resp.json()
