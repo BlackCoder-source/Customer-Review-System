@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import client from "../api/client";
 
-export default function AlertsPanel() {
+export default function AlertsPanel({ onSelectAlert }) {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,7 +49,13 @@ export default function AlertsPanel() {
           const detectedDate = alert.start_date_of_spike || alert.detected_date;
 
           return (
-            <div key={alertId || idx} className="alert-card" data-alert-id={alertId}>
+            <div
+              key={alertId || idx}
+              className="alert-card"
+              data-alert-id={alertId}
+              style={{ cursor: "pointer" }}
+              onClick={() => onSelectAlert && onSelectAlert(alert)}
+            >
               <div className="alert-card-header">
                 <h3 className="alert-card-title">{themeTitle}</h3>
                 <span className={getSeverityClass(severity)}>{severity}</span>
