@@ -2087,7 +2087,8 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
             if (theme.theme_id) {
                 params.set("theme_id", theme.theme_id);
             } else if (theme.name) {
-                params.set("theme_name", theme.name);
+                const cleanName = theme.name.replace(/\s+evidence$/i, "").trim();
+                params.set("theme_name", cleanName);
             }
         }
         return `${BASE}/reviews?${params}`;

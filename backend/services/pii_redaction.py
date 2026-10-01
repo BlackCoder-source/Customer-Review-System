@@ -95,13 +95,18 @@ def _get_anonymizer():
         return None
 
 
+import re
+
+# Fast regex patterns for immediate PII redaction
+EMAIL_REGEX = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
+PHONE_REGEX = re.compile(r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
+
+
 def redact_text(text: str) -> str:
     """Detect and replace PII in *text*, returning the redacted string.
 
     Each detected PII entity is replaced with a placeholder of the form
     ``<ENTITY_TYPE>`` (e.g. ``<PERSON>``, ``<EMAIL_ADDRESS>``).
-    If Presidio is unavailable the original text is returned unchanged
-    so the rest of the application keeps working.
 
     Args:
         text: Raw review text that may contain personal information.
@@ -112,32 +117,28 @@ def redact_text(text: str) -> str:
     if not text or not text.strip():
         return text
 
-    analyzer = _get_analyzer()
-    anonymizer = _get_anonymizer()
+    # Step 1: Fast regex redaction for Email and Phone numbers
+    redacted = EMAIL_REGEX.sub("<EMAIL_ADDRESS>", text)
+    redacted = PHONE_REGEX.sub("<PHONE_NUMBER>", redacted)
 
-    if analyzer is None or anonymizer is None:
-        # Graceful degradation: return text unmodified
-        return text
-
+    # Step 2: Presidio NER for deep entity detection when relevant
     try:
-        from presidio_anonymizer.entities import OperatorConfig
+        if "@" in text or any(char.isdigit() for char in text) or "My name" in text:
+            analyzer = _get_analyzer()
+            anonymizer = _get_anonymizer()
+            if analyzer and anonymizer:
+                from presidio_anonymizer.entities import OperatorConfig
+                results = analyzer.analyze(text=redacted, entities=_ENTITIES, language="en")
+                if results:
+                    operators = {
+                        entity: OperatorConfig("replace", {"new_value": f"<{entity}>"})
+                        for entity in _ENTITIES
+                    }
+                    anonymized = anonymizer.anonymize(
+                        text=redacted, analyzer_results=results, operators=operators
+                    )
+                    return anonymized.text
+    except Exception as exc:
+        logger.debug("Presidio deep scan skipped: %s", exc)
 
-        # Step 1 – analyse
-        results = analyzer.analyze(text=text, entities=_ENTITIES, language="en")
-
-        if not results:
-            return text
-
-        # Step 2 – anonymise: replace each entity with <ENTITY_TYPE>
-        operators = {
-            entity: OperatorConfig("replace", {"new_value": f"<{entity}>"})
-            for entity in _ENTITIES
-        }
-        anonymized = anonymizer.anonymize(
-            text=text, analyzer_results=results, operators=operators
-        )
-        return anonymized.text
-
-    except Exception as exc:  # pylint: disable=broad-except
-        logger.warning("PII redaction failed for text snippet – returning original. %s", exc)
-        return text
+    return redacted

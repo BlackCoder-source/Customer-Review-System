@@ -81,6 +81,10 @@ def analyze_sentiment(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Running sentiment analysis for %d reviews...", len(df))
     df_copy = df.copy()
 
+    if "sentiment" in df_copy.columns and "sentiment_score" in df_copy.columns and df_copy["sentiment"].astype(str).str.len().sum() > 0:
+        logger.info("Using pre-computed sentiment and sentiment_score from dataset.")
+        return df_copy
+
     try:
         texts = df_copy["text"].tolist()
         raw_preds = _predict_with_hf_pipeline(texts)

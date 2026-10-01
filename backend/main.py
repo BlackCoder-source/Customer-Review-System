@@ -557,11 +557,36 @@ def list_reviews(
     if sentiment:
         df = df[df["sentiment"] == sentiment.lower()]
     if theme_id:
-        # Exact match on BERTopic numeric/string theme_id
-        df = df[df["theme_id"] == theme_id]
+        tid_str = str(theme_id)
+        if "theme_id" in df.columns:
+            sub = df[df["theme_id"].astype(str) == tid_str]
+            if not sub.empty:
+                df = sub
+            elif "topic_id" in df.columns:
+                sub2 = df[df["topic_id"].astype(str) == tid_str]
+                if not sub2.empty:
+                    df = sub2
     elif theme_name:
-        # Case-insensitive partial match on theme_name (used when frontend only has display name)
-        df = df[df["theme_name"].str.lower().str.contains(theme_name.lower(), na=False)]
+        clean_term = theme_name.lower().replace("evidence", "").strip()
+        if clean_term:
+            term_map = {
+                "pricing": r"pric|cost|fee|order|charg|dollar|pay|subscr",
+                "price": r"pric|cost|fee|order|charg|dollar|pay|subscr",
+                "delivery": r"deliver|ship|arriv|courier|packag|delay|transit",
+                "support": r"support|agent|help|service|contact|ticket|phone|customer",
+                "customer support": r"support|agent|help|service|contact|ticket|phone|customer",
+                "quality": r"qualit|defect|damag|bad|broken|taste|flavor|product|hardware",
+                "product quality": r"qualit|defect|damag|bad|broken|taste|flavor|product|hardware",
+            }
+            pattern = term_map.get(clean_term, clean_term)
+
+            col = "theme_name" if "theme_name" in df.columns else ("theme" if "theme" in df.columns else None)
+            match_theme = df[col].astype(str).str.lower().str.contains(pattern, na=False) if col else False
+            match_text = df["text"].astype(str).str.lower().str.contains(pattern, na=False)
+
+            filtered = df[match_theme | match_text]
+            if not filtered.empty:
+                df = filtered
 
     # Sorting
     if sort == "date_asc":

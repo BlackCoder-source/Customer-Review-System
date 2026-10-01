@@ -135,6 +135,10 @@ def extract_themes(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Extracting themes for %d reviews...", len(df))
     df_copy = df.copy()
 
+    if "theme_id" in df_copy.columns and "theme_name" in df_copy.columns and df_copy["theme_name"].str.len().sum() > 0:
+        logger.info("Using pre-computed theme_id and theme_name from dataset.")
+        return df_copy
+
     try:
         df_copy = _cluster_with_bertopic(df_copy)
         logger.info("BERTopic theme extraction completed successfully.")
