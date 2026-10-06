@@ -5,10 +5,10 @@ theme summaries, theme details with review previews, and full reviews by theme.
 Configured with CORS for React / Vite frontend consumption.
 """
 
-import io
 from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
 import logging
+import io
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -185,6 +185,8 @@ app.add_middleware(
         "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
         "*"
     ],
     allow_credentials=True,

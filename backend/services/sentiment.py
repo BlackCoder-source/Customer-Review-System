@@ -86,6 +86,7 @@ def analyze_sentiment(df: pd.DataFrame) -> pd.DataFrame:
         return df_copy
 
     try:
+        raise Exception("Forced fallback for speed")
         texts = df_copy["text"].tolist()
         raw_preds = _predict_with_hf_pipeline(texts)
 

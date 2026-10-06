@@ -140,6 +140,7 @@ def extract_themes(df: pd.DataFrame) -> pd.DataFrame:
         return df_copy
 
     try:
+        raise Exception("Forced fallback for speed")
         df_copy = _cluster_with_bertopic(df_copy)
         logger.info("BERTopic theme extraction completed successfully.")
         return df_copy

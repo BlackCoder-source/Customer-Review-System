@@ -982,7 +982,7 @@ function renderSummaryScreen(regenerated = false) {
     const summaryElem = document.getElementById("executive-summary-text");
     const badgeElem = document.getElementById("ai-status-badge");
 
-    fetch("http://127.0.0.1:8000/summary/executive")
+    fetch("http://localhost:8000/summary/executive")
         .then((res) => {
             if (!res.ok) throw new Error("Backend response error: " + res.status);
             return res.json();
@@ -1677,7 +1677,7 @@ function renderThemeDetail(theme) {
     `;
 
     // Attempt live fetch from backend for theme review previews if backend is connected
-    const BASE = "http://127.0.0.1:8000";
+    const BASE = "http://localhost:8000";
     const themeUrl = theme.theme_id
         ? `${BASE}/themes/${theme.theme_id}/reviews`
         : `${BASE}/reviews?theme_name=${encodeURIComponent(theme.name)}&limit=50`;
@@ -2077,7 +2077,7 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
     let liveReviews = null; // will be populated from backend
 
     function buildUrl() {
-        const BASE = "http://127.0.0.1:8000";
+        const BASE = "http://localhost:8000";
         const params = new URLSearchParams({ sort: currentSort, limit: "200" });
         if (currentSentiment !== "all") params.set("sentiment", currentSentiment);
 
@@ -2123,24 +2123,33 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
         fetch(buildUrl())
             .then(res => { if (!res.ok) throw new Error("Backend error " + res.status); return res.json(); })
             .then(data => {
-                const reviews = (data.reviews || []).map(mapApiReview);
-                liveReviews = reviews;
-                renderList(reviews);
+                try {
+                    const reviews = (data.reviews || []).map(mapApiReview);
+                    liveReviews = reviews;
+                    renderList(reviews);
+                } catch (err) {
+                    if (list) list.innerHTML = `<div class="evidence-offline-banner">Error rendering reviews: ${err.message}</div>`;
+                    console.error("Render error:", err);
+                }
             })
             .catch(err => {
                 console.warn("Could not fetch reviews from backend, using static fallback:", err);
-                // Fallback to static data
-                const fallback = theme
-                    ? dashboardData.reviews.filter(r => r.theme.toLowerCase() === (theme.name || "").toLowerCase())
-                    : dashboardData.reviews;
-                liveReviews = fallback;
-                renderList(fallback);
-                const list2 = document.getElementById("evidence-list");
-                if (list2) {
-                    const banner = document.createElement("div");
-                    banner.className = "evidence-offline-banner";
-                    banner.innerHTML = `⚠️ Backend offline — showing sample data`;
-                    list2.prepend(banner);
+                try {
+                    const fallback = theme
+                        ? dashboardData.reviews.filter(r => (r.theme || "").toLowerCase() === (theme.name || "").toLowerCase())
+                        : dashboardData.reviews;
+                    liveReviews = fallback;
+                    renderList(fallback);
+                    const list2 = document.getElementById("evidence-list");
+                    if (list2) {
+                        const banner = document.createElement("div");
+                        banner.className = "evidence-offline-banner";
+                        banner.innerHTML = `⚠️ Backend offline — showing sample data (fetch error: ${err.message})`;
+                        list2.prepend(banner);
+                    }
+                } catch (fallbackErr) {
+                    if (list) list.innerHTML = `<div class="evidence-offline-banner">Error rendering fallback: ${fallbackErr.message}</div>`;
+                    console.error("Fallback render error:", fallbackErr);
                 }
             });
     }
@@ -2547,7 +2556,7 @@ function renderAlertsScreen() {
     `;
 
     // Fetch live backend alerts if active
-    fetch("http://127.0.0.1:8000/alerts")
+    fetch("http://localhost:8000/alerts")
         .then(res => { if (!res.ok) throw new Error("API error " + res.status); return res.json(); })
         .then(data => {
             if (data.alerts && data.alerts.length > 0) {
@@ -3238,7 +3247,7 @@ function renderAlertDetail(alert) {
 
 
     // Fetch live backend evidence for this alert if backend is active
-    const BASE = "http://127.0.0.1:8000";
+    const BASE = "http://localhost:8000";
     const alertId = alert.alert_id || alert.id;
     const primaryUrl = alertId ? `${BASE}/alerts/${alertId}` : null;
     const fallbackUrl = `${BASE}/reviews?theme_name=${encodeURIComponent(alert.theme || alert.title)}&limit=20`;
