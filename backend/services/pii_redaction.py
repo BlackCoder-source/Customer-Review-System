@@ -37,17 +37,19 @@ def _init_analyzer():
     try:
         import spacy
         from presidio_analyzer import AnalyzerEngine
-        from presidio_analyzer.nlp_engine import SpacyNlpEngine
+        from presidio_analyzer.nlp_engine import NlpEngineProvider
 
         for model in ("en_core_web_sm", "en_core_web_lg"):
             try:
                 if spacy.util.is_package(model):
-                    nlp = spacy.load(model)
-                    # Ensure lang_code metadata is set for Presidio compatibility
-                    if not nlp.meta.get("lang"):
-                        nlp.meta["lang"] = "en"
-                    nlp_engine = SpacyNlpEngine(models={"en": model})
-                    analyzer = AnalyzerEngine(nlp_engine=nlp_engine)
+                    # Use NlpEngineProvider with explicit lang_code (required by presidio-analyzer >= 2.2)
+                    nlp_config = {
+                        "nlp_engine_name": "spacy",
+                        "models": [{"lang_code": "en", "model_name": model}],
+                    }
+                    provider = NlpEngineProvider(nlp_configuration=nlp_config)
+                    nlp_engine = provider.create_engine()
+                    analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en"])
                     logger.info(
                         "Presidio AnalyzerEngine initialised with spaCy model '%s'.",
                         model,

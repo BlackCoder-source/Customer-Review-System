@@ -2023,13 +2023,21 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
                         </div>
                     </div>
 
-                    <section class="evidence-toolbar">
-                        <div class="evidence-filter-group">
-                            <span class="toolbar-label">SENTIMENT</span>
-                            <button class="evidence-filter active" data-sentiment="all">All</button>
-                            <button class="evidence-filter" data-sentiment="positive">Positive</button>
-                            <button class="evidence-filter" data-sentiment="neutral">Neutral</button>
-                            <button class="evidence-filter" data-sentiment="negative">Negative</button>
+                    <section class="evidence-toolbar" style="display:flex; flex-wrap:wrap; gap:24px; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; gap:24px; flex-wrap:wrap;">
+                            <div class="evidence-filter-group">
+                                <span class="toolbar-label">THEME</span>
+                                <button class="evidence-filter theme-filter active" data-theme="all">All</button>
+                                <button class="evidence-filter theme-filter" data-theme="Delivery">Delivery</button>
+                                <button class="evidence-filter theme-filter" data-theme="Product">Product</button>
+                            </div>
+                            <div class="evidence-filter-group">
+                                <span class="toolbar-label">SENTIMENT</span>
+                                <button class="evidence-filter sentiment-filter active" data-sentiment="all">All</button>
+                                <button class="evidence-filter sentiment-filter" data-sentiment="positive">Positive</button>
+                                <button class="evidence-filter sentiment-filter" data-sentiment="neutral">Neutral</button>
+                                <button class="evidence-filter sentiment-filter" data-sentiment="negative">Negative</button>
+                            </div>
                         </div>
                         <div class="evidence-sort-group">
                             <span class="toolbar-label">SORT</span>
@@ -2073,6 +2081,7 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
 
     // --- State for live evidence ---
     let currentSentiment = "all";
+    let currentThemeFilter = "all";
     let currentSort = "date_desc";
     let liveReviews = null; // will be populated from backend
 
@@ -2081,7 +2090,9 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
         const params = new URLSearchParams({ sort: currentSort, limit: "200" });
         if (currentSentiment !== "all") params.set("sentiment", currentSentiment);
 
-        if (theme) {
+        if (currentThemeFilter !== "all") {
+            params.set("theme_name", currentThemeFilter.toLowerCase());
+        } else if (theme) {
             // If we have a real BERTopic theme_id (from the backend theme detail page), use it for exact match.
             // Otherwise fall back to theme_name partial match (covers static dashboard themes like "pricing").
             if (theme.theme_id) {
@@ -2154,12 +2165,21 @@ function renderEvidenceScreen(theme = appState.selectedTheme) {
             });
     }
 
-    // Sentiment filter buttons
-    document.querySelectorAll(".evidence-filter").forEach(btn => {
+    // Filter buttons
+    document.querySelectorAll(".theme-filter").forEach(btn => {
         btn.addEventListener("click", () => {
-            document.querySelectorAll(".evidence-filter").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".theme-filter").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            currentSentiment = btn.dataset.sentiment;
+            currentThemeFilter = btn.dataset.theme || "all";
+            fetchReviews();
+        });
+    });
+    
+    document.querySelectorAll(".sentiment-filter").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".sentiment-filter").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            currentSentiment = btn.dataset.sentiment || "all";
             fetchReviews();
         });
     });
@@ -3005,7 +3025,7 @@ function renderAlertDetail(alert) {
                             <div class="alert-detail-title-row">
 
                                 <h1>
-                                    ${alert.title}
+                                    ${alert.theme || alert.theme_name || alert.title}
                                 </h1>
 
 

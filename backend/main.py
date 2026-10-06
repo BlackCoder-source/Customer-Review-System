@@ -40,6 +40,7 @@ from services.pii_redaction import redact_text
 from services.validation import run_validation
 from services.summary import generate_executive_summary, summarizer
 from services.ollama_service import is_ollama_available, get_available_models, select_best_model
+from services.azure_sentiment import get_azure_sentiment
 
 # Configure logging
 logging.basicConfig(
@@ -675,6 +676,9 @@ def validate_sentiment() -> ValidationResponse:
         mismatches=result["mismatches"],
     )
 
+@app.get("/sentiment/azure-test")
+def test_azure_sentiment(text: str):
+    return get_azure_sentiment(text)
 
 if __name__ == "__main__":
     import uvicorn
